@@ -1,10 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Chat Application</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 </head>
 <body>
-$END$
+<h1>Chat Rooms</h1>
+<div id="chatRooms"></div>
+
+<h2>Create a New Chat Room</h2>
+<form id="createChatRoomForm">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="text" id="description" placeholder="Description" required>
+    <button type="submit">Create Chat Room</button>
+</form>
+
+<h2>Selected Chat Room: <span id="selectedRoomName">None</span></h2>
+<div id="chatMessages"></div>
+<input type="text" id="messageInput" placeholder="Write a message...">
+<button onclick="sendChatMessage()">Send</button>
+
+<script>
+    var stompClient = null;
+    var selectedRoomId = null;
+    var currentSubscription = null; // 현재 구독을 추적하기 위한 변수
+
+    function connectToChatWebSocket() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame) {
+            console.log('Connected: ' + frame);
+        });
+    }
+
+    function sendChatMessage() {
+        if(selectedRoomId && stompClient) {
+            var messageContent = document.getElementById('messageInput').value;
+            if(messageContent.trim() !== "") {
+                var chatMessage = {
+                    content: messageContent,
+                };
+                stompClient.send(`/app/${selectedRoomId}/sendMessage`, {}, JSON.stringify(chatMessage));
+                document.getElementById('messageInput').value = '';
+            }
+        }
+    }
+
+    function fetchChatRooms() {
+        fetch('/api/chat/rooms')
+            .then(response => response.json())
+            .then(data => {
+                const chatRoomsDiv = document.getElementById('chatRooms');
+                chatRoomsDiv.innerHTML = '';
+                data.forEach(chatRoom => {
+                    const div = document.createElement('div');
+                    div.textContent = `Name: ${chatRoom.name}, Description: ${chatRoom.description}`;
+                    div.style.cursor = 'pointer';
+                    div.onclick = function() {
+                        selectChatRoom(chatRoom.id, chatRoom.name);
+                    };
+                    chatRoomsDiv.appendChild(div);
+                });
+            });
+    }
+
+    function createChatRoom(event) {
+        event.preventDefault();
+        const name = document.getElementById('name').value;
+        const description = document.getElementById('description').value;
+
+        fetch('/api/chat/rooms', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, description }),
+        })
+            .then(response => response.json())
+            .then(() => {
+                fetchChatRooms();
+                document.getElementById('name').value = '';
+                document.getElementById('description').value = '';
+            })
+            .catch(error => console.error('Error creating chatRoom room:', error));
+    }
+
+    function selectChatRoom(roomId, roomName) {
+        if (selectedRoomId === roomId) return;
+        selectedRoomId = roomId;
+        document.getElementById('selectedRoomName').textContent = roomName;
+        var chatMessagesDiv = document.getElementById('chatMessages');
+        chatMessagesDiv.innerHTML = ''; // 기존 메시지를 클리어
+
+        // 기존 구독이 있다면 해제
+        if (currentSubscription) {
+            currentSubscription.unsubscribe();
+        }
+
+        // 새로운 채팅방에 대한 구독 설정
+        if (stompClient && stompClient.connected) {
+            currentSubscription = stompClient.subscribe(`/topic/rooms/${roomId}`, function(message) {
+                displayChatMessage(JSON.parse(message.body));
+            });
+        }
+
+        // 선택한 채팅방의 이전 메시지들을 가져옵니다.
+        fetch(`/api/chat/messages/${roomId}`)
+            .then(response => response.json())
+            .then(messages => {
+                messages.forEach(message => displayChatMessage(message));
+            })
+            .catch(error => console.error('Error fetching messages:', error));
+    }
+    function displayChatMessage(message) {
+        var chatMessagesDiv = document.getElementById('chatMessages');
+        var messageElement = document.createElement('div');
+        messageElement.innerText = message.content;
+        chatMessagesDiv.appendChild(messageElement);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        connectToChatWebSocket();
+        fetchChatRooms();
+        document.getElementById('createChatRoomForm').addEventListener('submit', createChatRoom);
+    });
+</script>
 </body>
 </html>

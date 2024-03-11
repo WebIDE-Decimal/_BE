@@ -1,7 +1,7 @@
-package com.example.demo.chat.controller;
+package com.goormpj.decimal.chat.controller;
 
-import com.example.demo.chat.model.ChatMessage;
-import com.example.demo.chat.service.MessageService;
+import com.goormpj.decimal.chat.dto.ChatMessageDTO;
+import com.goormpj.decimal.chat.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class MessageController {
-
     private final MessageService messageService;
 
     @Autowired
@@ -20,13 +19,8 @@ public class MessageController {
 
     @MessageMapping("/{roomId}/sendMessage")
     @SendTo("/topic/rooms/{roomId}")
-    public ChatMessage sendMessage(@DestinationVariable Long roomId, ChatMessage chatMessage) {
-        Long senderID = chatMessage.getSenderID();
-        String messageContent = chatMessage.getContent();
-
-        // MessageService를 사용하여 메시지 저장
-        messageService.sendMessage(roomId, senderID, messageContent);
-
-        return chatMessage;
+    public ChatMessageDTO sendMessageToRoom(@DestinationVariable Long roomId, ChatMessageDTO chatMessageDTO) {
+        messageService.sendMessage(roomId, chatMessageDTO.getSenderID(), chatMessageDTO.getContent());
+        return chatMessageDTO;
     }
 }

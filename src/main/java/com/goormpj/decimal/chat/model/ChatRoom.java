@@ -1,4 +1,4 @@
-package com.example.demo.chat.model;
+package com.goormpj.decimal.chat.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +19,7 @@ public class ChatRoom {
     private Long id;
     private String name;
     private String description;
+    @CreatedDate
     private LocalDateTime createdAt;
 
 }

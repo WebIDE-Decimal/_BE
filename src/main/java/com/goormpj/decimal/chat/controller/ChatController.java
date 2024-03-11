@@ -1,14 +1,18 @@
-package com.example.demo.chat.controller;
+package com.goormpj.decimal.chat.controller;
 
-import com.example.demo.chat.model.ChatMessage;
-import com.example.demo.chat.model.ChatRoom;
-import com.example.demo.chat.service.ChatService;
-import com.example.demo.chat.service.MessageService;
+import com.goormpj.decimal.chat.dto.ChatRoomDTO;
+import com.goormpj.decimal.chat.dto.ChatMessageDTO;
+import com.goormpj.decimal.chat.mapper.ChatMapper;
+import com.goormpj.decimal.chat.model.ChatMessage;
+import com.goormpj.decimal.chat.model.ChatRoom;
+import com.goormpj.decimal.chat.service.ChatService;
+import com.goormpj.decimal.chat.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -22,24 +26,24 @@ public class ChatController {
         this.messageService = messageService;
     }
 
-    // 채팅방 생성
     @PostMapping("/rooms")
-    public ResponseEntity<ChatRoom> createChat(@RequestBody ChatRoom chatRoom) {
-        ChatRoom newChatRoom = chatService.createChat(chatRoom.getName(), chatRoom.getDescription());
-        return ResponseEntity.ok(newChatRoom);
+    public ResponseEntity<ChatRoomDTO> createChatRoom(@RequestBody ChatRoomDTO chatRoomDTO) {
+        ChatRoom createdChatRoom = chatService.createChat(chatRoomDTO.getName(), chatRoomDTO.getDescription());
+        return ResponseEntity.ok(ChatMapper.toChatRoomDTO(createdChatRoom));
     }
 
-    // 모든 채팅방 조회
     @GetMapping("/rooms")
-    public ResponseEntity<List<ChatRoom>> getAllChats() {
+    public ResponseEntity<List<ChatRoomDTO>> getAllChatRooms() {
         List<ChatRoom> chatRooms = chatService.getAllChats();
-        return ResponseEntity.ok(chatRooms);
+        List<ChatRoomDTO> chatRoomDTOs = chatRooms.stream().map(ChatMapper::toChatRoomDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(chatRoomDTOs);
     }
 
-    // 특정 채팅방의 모든 메시지 조회
     @GetMapping("/messages/{roomId}")
-    public ResponseEntity<List<ChatMessage>> getMessagesByRoomId(@PathVariable Long roomId) {
+    public ResponseEntity<List<ChatMessageDTO>> getMessagesByRoomId(@PathVariable Long roomId) {
         List<ChatMessage> messages = messageService.getMessagesByRoomId(roomId);
-        return ResponseEntity.ok(messages);
+        List<ChatMessageDTO> messageDTOs = messages.stream().map(ChatMapper::toChatMessageDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(messageDTOs);
     }
+
 }

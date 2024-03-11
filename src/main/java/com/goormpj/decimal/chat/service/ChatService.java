@@ -1,7 +1,7 @@
-package com.example.demo.chat.service;
+package com.goormpj.decimal.chat.service;
 
-import com.example.demo.chat.model.ChatRoom;
-import com.example.demo.chat.repository.ChatRepository;
+import com.goormpj.decimal.chat.model.ChatRoom;
+import com.goormpj.decimal.chat.repository.ChatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

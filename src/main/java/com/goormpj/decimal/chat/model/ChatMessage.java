@@ -1,8 +1,11 @@
-package com.example.demo.chat.model;
+package com.goormpj.decimal.chat.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,6 +19,8 @@ public class ChatMessage {
     private Long roomId;
     private Long senderID;
     private String content;
+    @CreatedDate
+    private LocalDateTime timestamp;
 
     public enum MessageType {
         CHAT,

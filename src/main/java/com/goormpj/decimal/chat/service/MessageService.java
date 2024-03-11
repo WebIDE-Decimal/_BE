@@ -1,11 +1,12 @@
-package com.example.demo.chat.service;
+package com.goormpj.decimal.chat.service;
 
-import com.example.demo.chat.model.ChatMessage;
-import com.example.demo.chat.model.ChatMessage.MessageType;
-import com.example.demo.chat.repository.MessageRepository;
+import com.goormpj.decimal.chat.model.ChatMessage.MessageType;
+import com.goormpj.decimal.chat.model.ChatMessage;
+import com.goormpj.decimal.chat.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,6 +25,7 @@ public class MessageService {
         message.setContent(messageContent);
         message.setSenderID(userId);
         message.setRoomId(roomId);
+        message.setTimestamp(LocalDateTime.now());
         return messageRepository.save(message);
     }
 
