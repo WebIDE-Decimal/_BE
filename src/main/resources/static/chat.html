@@ -2,13 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Chat Application</title>
+    <title>Integrated Chat and Conference Room</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 </head>
 <body>
 <h1>Chat Rooms</h1>
 <div id="chatRooms"></div>
+
+<div>
+    <label for="userIdInput">User ID:</label>
+    <input type="text" id="userIdInput" placeholder="Enter your User ID">
+    <button onclick="setUserIdAndConnect()">Set User ID and Connect</button>
+</div>
 
 <h2>Create a New Chat Room</h2>
 <form id="createChatRoomForm">
@@ -22,16 +28,43 @@
 <input type="text" id="messageInput" placeholder="Write a message...">
 <button onclick="sendChatMessage()">Send</button>
 
+<h2>Conference Room</h2>
+<div id="videoContainer">
+    <video id="localVideo" autoplay muted></video>
+    <button id="toggleVideo">Toggle Video</button>
+    <button id="startConference">Start Conference</button>
+</div>
+
 <script>
     var stompClient = null;
     var selectedRoomId = null;
     var currentSubscription = null; // 현재 구독을 추적하기 위한 변수
-
-    function connectToChatWebSocket() {
+    function setUserIdAndConnect() {
+        const userId = document.getElementById('userIdInput').value.trim();
+        if (userId) {
+            connectToChatWebSocket(userId);
+        } else {
+            alert('Please enter a User ID.');
+        }
+    }
+    function connectToChatWebSocket(userId) {
         var socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function(frame) {
             console.log('Connected: ' + frame);
+
+            // 여기서 userId를 사용하여 구독 설정
+            stompClient.subscribe('/topic/signal/' + userId, function(message) {
+                // 메시지에서 SDP와 ICE 정보 파싱
+                var signalMessage = JSON.parse(message.body);
+                if (signalMessage.type === 'sdp') {
+                    handleReceivedSDP(signalMessage.sdp, signalMessage.userId);
+                } else if (signalMessage.type === 'ice') {
+                    handleReceivedICE(signalMessage.candidate, signalMessage.userId);
+                }
+            });
+
+            initConference(userId);
         });
     }
 
@@ -46,6 +79,7 @@
                 document.getElementById('messageInput').value = '';
             }
         }
+        console.log('Sending chat message:', messageContent);
     }
 
     function fetchChatRooms() {
@@ -85,6 +119,7 @@
                 document.getElementById('description').value = '';
             })
             .catch(error => console.error('Error creating chatRoom room:', error));
+        console.log('Creating chat room:', { name, description });
     }
 
     function selectChatRoom(roomId, roomName) {
@@ -113,12 +148,126 @@
                 messages.forEach(message => displayChatMessage(message));
             })
             .catch(error => console.error('Error fetching messages:', error));
+        console.log('Selected chat room:', { roomId, roomName });
     }
     function displayChatMessage(message) {
         var chatMessagesDiv = document.getElementById('chatMessages');
         var messageElement = document.createElement('div');
         messageElement.innerText = message.content;
         chatMessagesDiv.appendChild(messageElement);
+        console.log('Displaying message:', message.content);
+    }
+
+
+
+
+    // 화상회의, 음성회의 관련 코드
+
+
+    function initConference(userId) {
+        let localVideo = document.getElementById('localVideo');
+        let localStream;
+        let peerConnections = {}; // 사용자 ID를 키로 하는 peerConnection 객체들의 맵
+        const peerConnectionConfig = {
+            'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
+        };
+
+        function startConference(isCaller) {
+            navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream => {
+                localStream = stream;
+                localVideo.srcObject = stream;
+
+                // 모든 연결에 로컬 스트림 추가
+                Object.keys(peerConnections).forEach(userId => {
+                    let pc = peerConnections[userId];
+                    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+                });
+
+                if (isCaller) {
+                    // 각 연결에 대해 오퍼 생성 및 전송
+                    Object.keys(peerConnections).forEach(userId => {
+                        createOffer(userId);
+                    });
+                }
+            }).catch(error => {
+                console.error('getUserMedia error:', error);
+                alert('getUserMedia error: ' + error.message);
+            });
+            console.log('회의 시작, 발신자:', isCaller);
+        }
+
+        function handleReceivedSDP(sdp, userId) {
+            let pc = getOrCreatePeerConnection(userId);
+            console.log(`${userId}로부터 SDP 수신. 유형: ${sdp.type}`);
+            pc.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
+                // 오퍼를 받았을 경우 답변 생성
+                if (sdp.type === 'offer') {
+                    pc.createAnswer().then(answer => {
+                        pc.setLocalDescription(answer).then(() => {
+                            // 답변 전송
+                            stompClient.send("/app/signal/sdp", {}, JSON.stringify({userId: userId, sdp: pc.localDescription}));
+                        });
+                    });
+                }
+            });
+        }
+
+        function handleReceivedICE(candidate, userId) {
+            let pc = getOrCreatePeerConnection(userId);
+            console.log(`${userId}로부터 ICE 후보 수신`);
+            pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
+        }
+
+        function getOrCreatePeerConnection(userId) {
+            if (!peerConnections[userId]) {
+                console.log(`${userId}에 대한 새로운 PeerConnection 생성`);
+                let pc = new RTCPeerConnection(peerConnectionConfig);
+                pc.onicecandidate = event => event.candidate && sendICECandidate(event.candidate, userId);
+                pc.ontrack = event => onTrack(event, userId);
+                peerConnections[userId] = pc;
+            }
+            return peerConnections[userId];
+        }
+
+        function sendICECandidate(candidate, userId) {
+            console.log(`${userId}에게 ICE 후보 전송`);
+            stompClient.send("/app/signal/ice", {}, JSON.stringify({userId: userId, candidate: candidate}));
+        }
+
+        function createOffer(userId) {
+            let pc = peerConnections[userId];
+            pc.createOffer().then(offer => {
+                pc.setLocalDescription(offer).then(() => {
+                    // 오퍼 전송
+                    console.log(`${userId}에게 오퍼 전송`);
+                    stompClient.send("/app/signal/sdp", {}, JSON.stringify({userId: userId, sdp: offer}));
+                });
+            });
+        }
+
+        function onTrack(event, userId) {
+            if (!document.querySelector(`#video-${userId}`)) {
+                let videoElement = document.createElement('video');
+                videoElement.id = `video-${userId}`;
+                videoElement.srcObject = event.streams[0];
+                videoElement.autoplay = true;
+                videoContainer.appendChild(videoElement);
+                console.log(`${userId}로부터 미디어 표시`);
+            }
+        }
+
+        document.getElementById('startConference').addEventListener('click', () => startConference(true));
+        document.getElementById('toggleVideo').addEventListener('click', toggleVideo);
+
+        function toggleVideo() {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                videoTrack.enabled = !videoTrack.enabled;
+                document.getElementById('toggleVideo').textContent = videoTrack.enabled ? '비디오 끄기' : '비디오 켜기';
+            }
+        }
+
+        console.log("회의 초기화 완료.");
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -126,6 +275,7 @@
         fetchChatRooms();
         document.getElementById('createChatRoomForm').addEventListener('submit', createChatRoom);
     });
+
 </script>
 </body>
 </html>
