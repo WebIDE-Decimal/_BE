@@ -29,8 +29,7 @@ public class WebRTCSignalController {
         return candidate;
     }
 
-    //
-
+    // 특정 방의 모든 구독자에게 전송
     @MessageMapping("/peer/answer/{camKey}/{roomId}")
     @SendTo("/topic/peer/answer/{camKey}/{roomId}")
     public String PeerHandleAnswer(@Payload String answer, @DestinationVariable(value = "roomId") String roomId,
