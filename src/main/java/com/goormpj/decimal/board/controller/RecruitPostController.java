@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/recruit-posts")
+@RequestMapping("/api/board")
 public class RecruitPostController {
     private final RecruitPostService recruitPostService;
 

@@ -12,5 +12,5 @@ public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    // 추가 필드와 메서드
+
 }
