@@ -1,16 +1,21 @@
 #!/bin/bash
 
-sudo docker ps -a -q --filter "name=컨테이터이름" | grep -q . && docker stop 컨테이너이름 && docker rm 컨테이너이름 | true
+CONTAINER_NAME="decimal"
+DOCKER_ACCOUNT="rhrudah"
+REPOSITORY="my-spring-app"
+TAG="latest"
+
+# 실행 중인 컨테이너가 있으면 정지하고 삭제
+sudo docker ps -a -q --filter "name=$CONTAINER_NAME" | grep -q . && sudo docker stop $CONTAINER_NAME && sudo docker rm $CONTAINER_NAME
 
 # 기존 이미지 삭제
-sudo docker rmi 도커계정이름/레포지토리:태그
+sudo docker rmi $DOCKER_ACCOUNT/$REPOSITORY:$TAG
 
 # 도커허브 이미지 pull
-sudo docker pull 도커계정이름/레포지토리:태그
+sudo docker pull $DOCKER_ACCOUNT/$REPOSITORY:$TAG
 
+# 도커 run (컨테이너를 백그라운드에서 실행)
+sudo docker run -d -p 8080:8080 --name $CONTAINER_NAME $DOCKER_ACCOUNT/$REPOSITORY:$TAG
 
-# 도커 run
-docker run -d -p 8080:8080 --name 컨테이너이름 도커계정이름/레포지토리:태그
-
-# 사용하지 않는 불필요한 이미지 삭제 -> 현재 컨테이너가 물고 있는 이미지는 삭제되지 않습니다.
-docker rmi -f $(docker images -f "dangling=true" -q) || true
+# 사용하지 않는 불필요한 이미지 삭제 (현재 컨테이너가 사용 중인 이미지는 삭제되지 않음)
+sudo docker rmi -f $(sudo docker images -f "dangling=true" -q) || true
