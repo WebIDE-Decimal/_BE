@@ -14,4 +14,6 @@ public interface MemberService {
 
     Boolean passwordCheck(LoginRequestDTO loginRequestDTO); // 로그인
 
+    Member findById(Long id);//id로 회원 정보 조회
+
 }
