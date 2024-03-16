@@ -1,5 +1,6 @@
 package com.goormpj.decimal.user.service;
 
+import com.goormpj.decimal.user.domain.Authority;
 import com.goormpj.decimal.user.domain.Member;
 import com.goormpj.decimal.user.dto.LoginRequestDTO;
 import com.goormpj.decimal.user.dto.SignUpRequestDTO;
@@ -26,6 +27,7 @@ public class MemberServiceImpl implements MemberService{
                 .email(signUpRequestDTO.getEmail())
                 .nickname(signUpRequestDTO.getNickname())
                 .password(passwordEncoder.encode(signUpRequestDTO.getPassword()))
+                .authority(Authority.ROLE_USER)
                 .build();
         return memberRepository.save(member);
     }
@@ -51,8 +53,11 @@ public class MemberServiceImpl implements MemberService{
             return true;
         else
             return false;
-
     }
 
+    @Override
+    public Member findById(Long id) {
+        return memberRepository.findById(id).orElseThrow();
+    }
 
 }
