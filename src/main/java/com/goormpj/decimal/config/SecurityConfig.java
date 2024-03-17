@@ -63,8 +63,7 @@ public class SecurityConfig {
                             return config;
                         }))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(HttpMethod.GET, "/**").permitAll() // 모든 GET 요청 허용
-                        .requestMatchers(HttpMethod.POST, "/**").permitAll()
+                        .requestMatchers("/**").permitAll() // 모든 경로 허용
                         .requestMatchers("/api/users/signup", "/", "/api/users/login","/login").permitAll()
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated())
