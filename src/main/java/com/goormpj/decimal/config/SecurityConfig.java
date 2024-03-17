@@ -62,7 +62,13 @@ public class SecurityConfig {
                             return config;
                         }))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(  "/api/users/signup", "/", "/api/users/login","/login").permitAll()
+                        .requestMatchers(
+                                "/api/users/signup",
+                                "/",
+                                "/api/users/login",
+                                "/login",
+                                "/api/sessions/{sessionId}/connections", //화상회의 테스트용으로 2개 추가했습니다.
+                                "/api/sessions" ).permitAll()
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
