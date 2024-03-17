@@ -28,7 +28,7 @@ public class ReissueController {
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
-        //get refresh_token token
+        //get refresh_token from cookies
         String refreshToken = getRefreshToken(request);
 
         if (refreshToken == null) {
