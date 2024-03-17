@@ -16,6 +16,7 @@ public class FolderController {
 
     private final FolderService folderService;
 
+    // 새 폴더 생성
     @PostMapping
     public ResponseEntity<Folder> createFolder(@RequestParam String folderName, @RequestParam Long parentId) {
         Folder newFolder = folderService.createFolder(folderName, parentId);
@@ -28,6 +29,7 @@ public class FolderController {
 
     }
 
+    // 기존 폴더 정보 업데이트
     @PutMapping("/{folderId}")
     public ResponseEntity<Folder> updateFolder(@PathVariable Long folderId, @RequestParam Long parentId) {
         Folder updatedFolder = folderService.updateFolder(folderId, parentId);
@@ -40,18 +42,21 @@ public class FolderController {
 
     }
 
+    // 특정 폴더 삭제
     @DeleteMapping("/{folderId}")
     public ResponseEntity<Void> deleteFolder(@PathVariable Long folderId) {
         folderService.deleteFolder(folderId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    // 모든 폴더 조회
     @GetMapping
     public ResponseEntity<List<Folder>> getAllFolders() {
         List<Folder> folders = folderService.getAllFolders();
         return new ResponseEntity<>(folders, HttpStatus.OK);
     }
 
+    // 특정 부모 ID를 가진 자식 폴더들을 조회
     @GetMapping("/{parentId}/childFolders")
     public ResponseEntity<List<Folder>> getChildFolders(@PathVariable Long parentId) {
         List<Folder> subFolders = folderService.getChildFolders(parentId);
