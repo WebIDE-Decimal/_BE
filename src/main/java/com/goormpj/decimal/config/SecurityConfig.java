@@ -8,6 +8,7 @@ import com.goormpj.decimal.user.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -62,7 +63,8 @@ public class SecurityConfig {
                             return config;
                         }))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(  "/api/users/signup", "/", "/api/users/login","/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/**").permitAll() // 모든 GET 요청 허용
+                        .requestMatchers(  "/api/users/signup", "/", "/api/users/login","/login", "/api/sessions/**").permitAll()
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
