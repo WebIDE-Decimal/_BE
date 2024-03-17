@@ -20,5 +20,5 @@ public class RecruitPost {
     private String state; // 모집 상태
     private String target; // 모집 대상
     private LocalDateTime localDateTime; // 작성 시각
-    private Boolean isDeleted; // 삭제 여부
+    private Boolean isDeleted = false; // 삭제 기본값을 false로 수정
 }

@@ -25,7 +25,7 @@ public class RecruitPostController {
     // 모든 모집 게시글 조회
     @GetMapping
     public ResponseEntity<List<RecruitPostDTO>> getAllRecruitPosts() {
-        List<RecruitPost> posts = recruitPostService.findAll();
+        List<RecruitPost> posts = recruitPostService.findAllNotDeleted();
         List<RecruitPostDTO> dtos = posts.stream()
                 .map(RecruitPostMapper::entityToDto) // Entity -> DTO
                 .collect(Collectors.toList());
@@ -44,7 +44,7 @@ public class RecruitPostController {
     // ID로 특정 모집 게시글 조회
     @GetMapping("/{id}")
     public ResponseEntity<RecruitPostDTO> getRecruitPostById(@PathVariable Long id) {
-        return recruitPostService.findById(id)
+        return recruitPostService.findByIdNotDeleted(id)
                 .map(RecruitPostMapper::entityToDto) // Entity -> DTO
                 .map(dto -> ResponseEntity.ok(dto)) // DTO 변환후 표시
                 .orElseGet(() -> ResponseEntity.notFound().build()); // 게시글 찾을 수 없는 경우 404 반환
@@ -53,7 +53,7 @@ public class RecruitPostController {
     // 특정 모집 게시글을 업데이트하는 메서드
     @PutMapping("/{id}")
     public ResponseEntity<RecruitPostDTO> updateRecruitPost(@PathVariable Long id, @RequestBody RecruitPostDTO recruitPostDTO) {
-        return recruitPostService.findById(id).map(existingPost -> {
+        return recruitPostService.findByIdNotDeleted(id).map(existingPost -> {
             RecruitPost updatedPost = RecruitPostMapper.dtoToEntity(recruitPostDTO); // DTO-> Entity
             updatedPost.setId(id); // ID 설정
             updatedPost = recruitPostService.save(updatedPost); // 업데이트 게시글 저장
@@ -64,10 +64,7 @@ public class RecruitPostController {
     // 특정 모집 게시글 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecruitPost(@PathVariable Long id) {
-        if (!recruitPostService.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build(); // 게시글 찾을 수 없는 경우 404 반환
-        }
-        recruitPostService.delete(id); // 게시글 삭제
-        return ResponseEntity.noContent().build(); // 게시글 삭제후 응답
+            recruitPostService.softDelete(id);
+            return ResponseEntity.noContent().build(); // 게시글 삭제후 응답
     }
 }
