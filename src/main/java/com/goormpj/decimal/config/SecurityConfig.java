@@ -64,7 +64,8 @@ public class SecurityConfig {
                         }))
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(HttpMethod.GET, "/**").permitAll() // 모든 GET 요청 허용
-                        .requestMatchers(  "/api/users/signup", "/", "/api/users/login","/login", "/api/sessions/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/sessions/**").permitAll()
+                        .requestMatchers("/api/users/signup", "/", "/api/users/login","/login").permitAll()
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
