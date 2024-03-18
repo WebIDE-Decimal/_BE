@@ -11,3 +11,5 @@ public interface RecruitPostService {
     void softDelete(Long id); // soft delete 추가
 
 }
+
+
