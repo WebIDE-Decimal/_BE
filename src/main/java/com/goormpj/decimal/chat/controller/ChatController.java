@@ -26,12 +26,14 @@ public class ChatController {
         this.messageService = messageService;
     }
 
+    // 채팅방 생성
     @PostMapping("/rooms")
     public ResponseEntity<ChatRoomDTO> createChatRoom(@RequestBody ChatRoomDTO chatRoomDTO) {
         ChatRoom createdChatRoom = chatService.createChat(chatRoomDTO.getName(), chatRoomDTO.getDescription());
         return ResponseEntity.ok(ChatMapper.toChatRoomDTO(createdChatRoom));
     }
 
+    // 채팅방 목록 조회
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoomDTO>> getAllChatRooms() {
         List<ChatRoom> chatRooms = chatService.getAllChats();
@@ -39,6 +41,7 @@ public class ChatController {
         return ResponseEntity.ok(chatRoomDTOs);
     }
 
+    // 특정 채팅방 메시지 조회
     @GetMapping("/messages/{roomId}")
     public ResponseEntity<List<ChatMessageDTO>> getMessagesByRoomId(@PathVariable Long roomId) {
         List<ChatMessage> messages = messageService.getMessagesByRoomId(roomId);
