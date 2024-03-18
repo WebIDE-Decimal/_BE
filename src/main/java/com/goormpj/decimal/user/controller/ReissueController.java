@@ -90,7 +90,7 @@ public class ReissueController {
         cookie.setMaxAge(24*60*60);
         cookie.setSecure(true); //https
         cookie.setHttpOnly(true);
-
+        cookie.setPath("/");
         return cookie;
     }
 
