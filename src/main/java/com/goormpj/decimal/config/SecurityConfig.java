@@ -46,6 +46,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        LoginFilter loginFilter = new LoginFilter(authenticationManager(authenticationConfiguration) , jwtProvider, refreshTokenRepository);
+        loginFilter.setFilterProcessesUrl("/api/login");
+
         http.httpBasic(basic->basic.disable())
                 .formLogin(form -> form.disable())
                 .csrf(csrf->csrf.disable())
@@ -64,11 +67,11 @@ public class SecurityConfig {
                         }))
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/**").permitAll() // 모든 경로 허용
-                        .requestMatchers("/api/users/signup", "/", "/api/users/login","/login").permitAll()
-                        .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/api/users/signup", "/", "/api/login","/api/logout").permitAll()
+                        .requestMatchers("/api/reissue").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration) , jwtProvider, refreshTokenRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtProvider, refreshTokenRepository), LogoutFilter.class)
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
