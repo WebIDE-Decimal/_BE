@@ -2,13 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Chat Application</title>
+    <title>Integrated Chat and Conference Room</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 </head>
 <body>
 <h1>Chat Rooms</h1>
 <div id="chatRooms"></div>
+
+<div>
+    <label for="userIdInput">User ID:</label>
+    <input type="text" id="userIdInput" placeholder="Enter your User ID">
+    <button onclick="setUserIdAndConnect()">Set User ID and Connect</button>
+</div>
 
 <h2>Create a New Chat Room</h2>
 <form id="createChatRoomForm">
@@ -22,30 +28,357 @@
 <input type="text" id="messageInput" placeholder="Write a message...">
 <button onclick="sendChatMessage()">Send</button>
 
+<div>
+    <!-- 룸 아이디 번호를 입력하는 input -->
+    <input type="number" id="roomIdInput" />
+    <!-- 룸 아이디를 입력후 클릭하는 button -->
+    <button type="button" id="enterRoomBtn">enter Room</button>
+    <!-- enterRoomBtn 클릭시 나타남, Streams 정보를 담은 Peer 를 웹소켓 ( 시그널링 )   -->
+    <button type="button" id="startSteamBtn" style="display: none;">start Streams</button>
+</div>
+<!-- 내 웹캠 화면을 보여주는 video html -->
+<video id="localStream" autoplay playsinline controls style="display: none;"></video>
+
+<!-- WebRTC에 연결된 웹캠들이 추가되는 Div  -->
+<div id="remoteStreamDiv">
+</div>
+
 <script>
-    var stompClient = null;
+    // Global variables
+    let chatStompClient = null;
+    let videoStompClient = null;
+    let localStream = undefined;
+
+    // Peer Connection과 관련된 변수
+    let localStreamElement = document.querySelector('#localStream');
+    const myKey = Math.random().toString(36).substring(2, 11);
+    let pcListMap = new Map();
+    let roomId;
+    let otherKeyList = [];
+
     var selectedRoomId = null;
     var currentSubscription = null; // 현재 구독을 추적하기 위한 변수
 
-    function connectToChatWebSocket() {
-        var socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
-        stompClient.connect({}, function(frame) {
-            console.log('Connected: ' + frame);
+    function setUserIdAndConnect() {
+        const userId = document.getElementById('userIdInput').value.trim();
+        if (userId) {
+            connectToChatWebSocket(userId);
+        } else {
+            alert('Please enter a User ID.');
+        }
+    }
+
+    // 카메라 시작
+    const startCam = async () =>{
+        if(navigator.mediaDevices !== undefined){
+            await navigator.mediaDevices.getUserMedia({ audio: true, video : true })
+                .then(async (stream) => {
+                    console.log('Stream found');
+                    //웹캠, 마이크의 스트림 정보를 글로벌 변수로 저장한다.
+                    localStream = stream;
+                    // Disable the microphone by default
+                    stream.getAudioTracks()[0].enabled = true;
+                    localStreamElement.srcObject = localStream;
+                    // Connect after making sure that local stream is availble
+
+                }).catch(error => {
+                    console.error("Error accessing media devices:", error);
+                });
+        }
+
+    }
+
+    // WebRTC 연결
+    const connectSocket = async () =>{
+        const socket = new SockJS('/signaling');
+        videoStompClient = Stomp.over(socket);
+        videoStompClient.debug = null;
+
+        videoStompClient.connect({}, function () {
+            console.log('Connected to WebRTC server');
+
+            //iceCandidate peer 교환을 위한 subscribe
+            videoStompClient.subscribe(`/topic/peer/iceCandidate/${myKey}/${roomId}`, candidate => {
+                const key = JSON.parse(candidate.body).key
+                const message = JSON.parse(candidate.body).body;
+
+                // 해당 key에 해당되는 peer 에 받은 정보를 addIceCandidate 해준다.
+                pcListMap.get(key).addIceCandidate(new RTCIceCandidate({candidate:message.candidate,sdpMLineIndex:message.sdpMLineIndex,sdpMid:message.sdpMid}));
+
+            });
+
+            //offer peer 교환을 위한 subscribe
+            videoStompClient.subscribe(`/topic/peer/offer/${myKey}/${roomId}`, offer => {
+                const key = JSON.parse(offer.body).key;
+                const message = JSON.parse(offer.body).body;
+
+                // 해당 key에 새로운 peerConnection 를 생성해준후 pcListMap 에 저장해준다.
+                pcListMap.set(key,createPeerConnection(key));
+                // 생성한 peer 에 offer정보를 setRemoteDescription 해준다.
+                pcListMap.get(key).setRemoteDescription(new RTCSessionDescription({type:message.type,sdp:message.sdp}));
+                //sendAnswer 함수를 호출해준다.
+                sendAnswer(pcListMap.get(key), key);
+
+            });
+
+            //answer peer 교환을 위한 subscribe
+            videoStompClient.subscribe(`/topic/peer/answer/${myKey}/${roomId}`, answer =>{
+                const key = JSON.parse(answer.body).key;
+                const message = JSON.parse(answer.body).body;
+
+                // 해당 key에 해당되는 Peer 에 받은 정보를 setRemoteDescription 해준다.
+                pcListMap.get(key).setRemoteDescription(new RTCSessionDescription(message));
+
+            });
+
+            //key를 보내라는 신호를 받은 subscribe
+            videoStompClient.subscribe(`/topic/call/key`, message =>{
+                //자신의 key를 보내는 send
+                videoStompClient.send(`/app/send/key`, {}, JSON.stringify(myKey));
+
+            });
+
+            //상대방의 key를 받는 subscribe
+            videoStompClient.subscribe(`/topic/send/key`, message => {
+                const key = JSON.parse(message.body);
+
+                //만약 중복되는 키가 ohterKeyList에 있는지 확인하고 없다면 추가해준다.
+                if(myKey !== key && otherKeyList.find((mapKey) => mapKey === myKey) === undefined){
+                    otherKeyList.push(key);
+                }
+            });
+
         });
     }
 
+    let onTrack = (event, otherKey) => {
+
+        if(document.getElementById(`${otherKey}`) === null){
+            const video =  document.createElement('video');
+
+            video.autoplay = true;
+            video.controls = true;
+            video.id = otherKey;
+            video.srcObject = event.streams[0];
+
+            document.getElementById('remoteStreamDiv').appendChild(video);
+        }
+
+        //
+        // remoteStreamElement.srcObject = event.streams[0];
+        // remoteStreamElement.play();
+    };
+
+    const createPeerConnection = (otherKey) =>{
+        const pc = new RTCPeerConnection();
+        try {
+            pc.addEventListener('icecandidate', (event) =>{
+                onIceCandidate(event, otherKey);
+            });
+            pc.addEventListener('track', (event) =>{
+                onTrack(event, otherKey);
+            });
+            if(localStream !== undefined){
+                localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, localStream);
+                });
+            }
+
+            console.log('PeerConnection created');
+        } catch (error) {
+            console.error('PeerConnection failed: ', error);
+        }
+        return pc;
+    }
+
+    let onIceCandidate = (event, otherKey) => {
+        if (event.candidate) {
+            console.log('ICE candidate');
+            videoStompClient.send(`/app/peer/iceCandidate/${otherKey}/${roomId}`,{}, JSON.stringify({
+                key : myKey,
+                body : event.candidate
+            }));
+        }
+    };
+
+    let sendOffer = (pc ,otherKey) => {
+        pc.createOffer().then(offer =>{
+            setLocalAndSendMessage(pc, offer);
+            videoStompClient.send(`/app/peer/offer/${otherKey}/${roomId}`, {}, JSON.stringify({
+                key : myKey,
+                body : offer
+            }));
+            console.log('Send offer');
+        });
+    };
+
+    let sendAnswer = (pc,otherKey) => {
+        pc.createAnswer().then( answer => {
+            setLocalAndSendMessage(pc ,answer);
+            videoStompClient.send(`/app/peer/answer/${otherKey}/${roomId}`, {}, JSON.stringify({
+                key : myKey,
+                body : answer
+            }));
+            console.log('Send answer');
+        });
+    };
+
+    const setLocalAndSendMessage = (pc ,sessionDescription) =>{
+        pc.setLocalDescription(sessionDescription);
+    }
+
+    //룸 번호 입력 후 캠 + 웹소켓 실행
+    document.querySelector('#enterRoomBtn').addEventListener('click', async () =>{
+        await startCam();
+
+        if(localStream !== undefined){
+            document.querySelector('#localStream').style.display = 'block';
+            document.querySelector('#startSteamBtn').style.display = '';
+        }
+        roomId = document.querySelector('#roomIdInput').value;
+        document.querySelector('#roomIdInput').disabled = true;
+        document.querySelector('#enterRoomBtn').disabled = true;
+
+        await connectSocket();
+    });
+
+    // 스트림 버튼 클릭시 , 다른 웹 key들 웹소켓을 가져 온뒤에 offer -> answer -> iceCandidate 통신
+    // peer 커넥션은 pcListMap 으로 저장
+    document.querySelector('#startSteamBtn').addEventListener('click', async () =>{
+        await videoStompClient.send(`/app/call/key`, {}, {});
+
+        setTimeout(() =>{
+
+            otherKeyList.map((key) =>{
+                if(!pcListMap.has(key)){
+                    pcListMap.set(key, createPeerConnection(key));
+                    sendOffer(pcListMap.get(key),key);
+                }
+
+            });
+
+        },1000);
+    });
+
+    // Chat WebSocket 연결
+    function connectToChatWebSocket(userId) {
+        const chatSocket = new SockJS('/ws');
+        chatStompClient = Stomp.over(chatSocket);
+        chatStompClient.connect({}, frame => {
+            console.log('Connected to chat server: ' + frame);
+            subscribeToChatEvents(userId);
+        }, error => {
+            console.error('Chat connection error: ' + error);
+        });
+    }
+
+    // Chat 이벤트 구독
+    function subscribeToChatEvents(userId) {
+        chatStompClient.subscribe(`/topic/app/${userId}`, message => {
+            const chatMessage = JSON.parse(message.body);
+            displayChatMessage(chatMessage);
+        });
+    }
+
+    // 채팅방 선택
+    function selectChatRoom(roomId, roomName) {
+        if (selectedRoomId === roomId) return;
+        selectedRoomId = roomId;
+        document.getElementById('selectedRoomName').textContent = roomName;
+        var chatMessagesDiv = document.getElementById('chatMessages');
+        chatMessagesDiv.innerHTML = ''; // 기존 메시지를 클리어
+
+        // 기존 구독이 있다면 해제
+        if (currentSubscription) {
+            currentSubscription.unsubscribe();
+        }
+
+        // 새로운 채팅방에 대한 구독 설정
+        if (chatStompClient && chatStompClient.connected) {
+            currentSubscription = chatStompClient.subscribe(`/topic/rooms/${roomId}`, function(message) {
+                displayChatMessage(JSON.parse(message.body));
+            });
+        }
+
+        // 선택한 채팅방의 이전 메시지들을 가져옵니다.
+        fetch(`/api/chat/messages/${roomId}`)
+            .then(response => response.json())
+            .then(messages => {
+                messages.forEach(message => displayChatMessage(message));
+            })
+            .catch(error => console.error('Error fetching messages:', error));
+        console.log('Selected chat room:', { roomId, roomName });
+    }
+    function displayChatMessage(message) {
+        var chatMessagesDiv = document.getElementById('chatMessages');
+        var messageElement = document.createElement('div');
+        messageElement.innerText = message.content;
+        chatMessagesDiv.appendChild(messageElement);
+        console.log('Displaying message:', message.content);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        connectToChatWebSocket();
+        fetchChatRooms();
+        document.getElementById('createChatRoomForm').addEventListener('submit', createChatRoom);
+        document.getElementById('enterRoomBtn').addEventListener('click', async () => {
+            await startCam();
+            if (localStream !== undefined) {
+                document.querySelector('#localStream').style.display = 'block';
+                document.querySelector('#startSteamBtn').style.display = 'block';
+            }
+            roomId = document.querySelector('#roomIdInput').value;
+            document.querySelector('#roomIdInput').disabled = true;
+            document.querySelector('#enterRoomBtn').disabled = true;
+            await connectSocket();
+        });
+
+        //룸 번호 입력 후 캠 + 웹소켓 실행
+        document.querySelector('#enterRoomBtn').addEventListener('click', async () =>{
+            await startCam();
+
+            if(localStream !== undefined){
+                document.querySelector('#localStream').style.display = 'block';
+                document.querySelector('#startSteamBtn').style.display = '';
+            }
+            roomId = document.querySelector('#roomIdInput').value;
+            document.querySelector('#roomIdInput').disabled = true;
+            document.querySelector('#enterRoomBtn').disabled = true;
+
+            await connectSocket();
+        });
+
+        // 스트림 버튼 클릭시 , 다른 웹 key들 웹소켓을 가져 온뒤에 offer -> answer -> iceCandidate 통신
+        // peer 커넥션은 pcListMap 으로 저장
+        document.querySelector('#startSteamBtn').addEventListener('click', async () =>{
+            await videoStompClient.send(`/app/call/key`, {}, {});
+
+            setTimeout(() =>{
+
+                otherKeyList.map((key) =>{
+                    if(!pcListMap.has(key)){
+                        pcListMap.set(key, createPeerConnection(key));
+                        sendOffer(pcListMap.get(key),key);
+                    }
+
+                });
+
+            },1000);
+        });
+    })
+
     function sendChatMessage() {
-        if(selectedRoomId && stompClient) {
+        if(selectedRoomId && chatStompClient) {
             var messageContent = document.getElementById('messageInput').value;
             if(messageContent.trim() !== "") {
                 var chatMessage = {
                     content: messageContent,
                 };
-                stompClient.send(`/app/${selectedRoomId}/sendMessage`, {}, JSON.stringify(chatMessage));
+                chatStompClient.send(`/app/${selectedRoomId}/sendMessage`, {}, JSON.stringify(chatMessage));
                 document.getElementById('messageInput').value = '';
             }
         }
+        console.log('Sending chat message:', messageContent);
     }
 
     function fetchChatRooms() {
@@ -85,47 +418,11 @@
                 document.getElementById('description').value = '';
             })
             .catch(error => console.error('Error creating chatRoom room:', error));
+        console.log('Creating chat room:', { name, description });
     }
 
-    function selectChatRoom(roomId, roomName) {
-        if (selectedRoomId === roomId) return;
-        selectedRoomId = roomId;
-        document.getElementById('selectedRoomName').textContent = roomName;
-        var chatMessagesDiv = document.getElementById('chatMessages');
-        chatMessagesDiv.innerHTML = ''; // 기존 메시지를 클리어
 
-        // 기존 구독이 있다면 해제
-        if (currentSubscription) {
-            currentSubscription.unsubscribe();
-        }
-
-        // 새로운 채팅방에 대한 구독 설정
-        if (stompClient && stompClient.connected) {
-            currentSubscription = stompClient.subscribe(`/topic/rooms/${roomId}`, function(message) {
-                displayChatMessage(JSON.parse(message.body));
-            });
-        }
-
-        // 선택한 채팅방의 이전 메시지들을 가져옵니다.
-        fetch(`/api/chat/messages/${roomId}`)
-            .then(response => response.json())
-            .then(messages => {
-                messages.forEach(message => displayChatMessage(message));
-            })
-            .catch(error => console.error('Error fetching messages:', error));
-    }
-    function displayChatMessage(message) {
-        var chatMessagesDiv = document.getElementById('chatMessages');
-        var messageElement = document.createElement('div');
-        messageElement.innerText = message.content;
-        chatMessagesDiv.appendChild(messageElement);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        connectToChatWebSocket();
-        fetchChatRooms();
-        document.getElementById('createChatRoomForm').addEventListener('submit', createChatRoom);
-    });
 </script>
+
 </body>
 </html>
