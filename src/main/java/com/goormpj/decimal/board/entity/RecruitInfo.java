@@ -16,9 +16,16 @@ public class RecruitInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    // RecruitPost 관계성을 나타내는 외래키
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recruit_post_id")
-    private RecruitPost recruitPost;            //RecruitPost와 엔티티 연결
+    @JoinColumn(name = "recruit_post_id")       //RecruitPost 참조
+    private RecruitPost recruitPost;
+
+    //Member 관계성을 나타내는 외래키
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")             //Member 참조를 위한 필드와 mapping
+    private Member member;
 
     private String detail;                      //자세한 설명
     private LocalDateTime updatedAt;            //마지막 업데이트 시간
