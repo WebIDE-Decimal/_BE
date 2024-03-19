@@ -97,9 +97,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     //로그인 실패시 실행되는 메서드
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
-        log.info("login fail");
         String errorMessage = "로그인 실패 : " + failed.getMessage();
-
+        log.info("login fail / errorMessage = {}", failed.getMessage());
         try {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
