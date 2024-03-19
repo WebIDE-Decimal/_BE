@@ -29,18 +29,12 @@ public class CustomLogoutFilter extends GenericFilterBean {
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         String requestUri = request.getRequestURI();
         if (!requestUri.matches("^\\/api/logout$")) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("request Uri 에러 !");
             filterChain.doFilter(request, response);
             return;
         }
 
         String requestMethod = request.getMethod();
         if (!requestMethod.equals("POST")) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("request Method 에러 !");
             filterChain.doFilter(request, response);
             return;
         }
