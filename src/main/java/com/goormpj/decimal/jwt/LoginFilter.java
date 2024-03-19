@@ -80,7 +80,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setHeader("access_token", access_token);
         response.addCookie(createCookie("refresh_token", refresh_token));
         response.setStatus(HttpStatus.OK.value());
-
     }
 
     private void addRefreshToken(String memberId, String refresh, Long expiredMs) {

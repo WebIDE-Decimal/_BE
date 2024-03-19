@@ -13,7 +13,10 @@ public class VideoChatModel {
     @Id
     private String sessionId;
 
+    private String customSessionId;
+
     @ManyToOne
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id") // Member 엔티티와의 관계를 정의합니다.
     private Member member;
+
 }

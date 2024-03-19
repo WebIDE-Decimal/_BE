@@ -3,15 +3,16 @@ package com.goormpj.decimal.chat.controller;
 import com.goormpj.decimal.chat.dto.VideoChatDto;
 import com.goormpj.decimal.chat.repository.VideoChatRepository;
 import com.goormpj.decimal.chat.service.VideoChatService;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/chat")
 public class VideoChatController {
 
@@ -24,9 +25,11 @@ public class VideoChatController {
 
     // 세션 생성
     @PostMapping("/sessions")
-    public ResponseEntity<String> initializeSession(@RequestBody(required = false) VideoChatDto videoChatDto) {
+    public ResponseEntity<String> initializeSession(@RequestBody(required = false) VideoChatDto videoChatDto,
+                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails)
+    {
         try {
-            String sessionId = videoChatService.initializeSession(videoChatDto);
+            String sessionId = videoChatService.initializeSession(videoChatDto, customUserDetails);
             return ResponseEntity.ok(sessionId);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -35,20 +38,42 @@ public class VideoChatController {
 
     // 세션 연결
     @PostMapping("/sessions/{sessionId}/connections")
-    public ResponseEntity<String> createConnection(@PathVariable String sessionId, @RequestBody(required = false) VideoChatDto videoChatDto) {
+    public ResponseEntity<String> createConnection(@PathVariable String sessionId,
+                                                   @RequestBody(required = false) VideoChatDto videoChatDto,
+                                                   @AuthenticationPrincipal CustomUserDetails customUserDetails)
+    {
         try {
-            String token = videoChatService.createConnection(sessionId, videoChatDto);
+            String token = videoChatService.createConnection(sessionId, videoChatDto, customUserDetails);
             return ResponseEntity.ok(token);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // 특정 사용자를 session에 초대(추가)
+    @PostMapping("/sessions/{sessionId}/invite")
+    public ResponseEntity<?> inviteUserToSession(
+            @PathVariable String sessionId,
+            @RequestParam String inviteeId)
+    {
+        try {
+            // VideoChatService에서 실제 초대 로직 수행
+            videoChatService.inviteUserToSession(sessionId, inviteeId);
+
+            // 성공 응답 반환
+            return ResponseEntity.ok("User invited successfully to the session.");
+        } catch (Exception e) {
+            // 실패 응답 반환
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // 사용자가 연결된 모든 세션 가져오기
     @GetMapping("/{userId}/sessions")
-    public ResponseEntity<List<VideoChatDto>> getUserSessions(@PathVariable String userId) {
+    public ResponseEntity<List<String>> getUserSessions(@PathVariable String userId) {
         try {
             Long memberId = Long.parseLong(userId);
-            List<VideoChatDto> sessions = videoChatService.getUserSessions(memberId);
+            List<String> sessions = videoChatService.getUserSessionsId(memberId);
             if (sessions.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }

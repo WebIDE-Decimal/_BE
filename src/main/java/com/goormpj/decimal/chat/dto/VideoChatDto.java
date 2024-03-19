@@ -11,5 +11,4 @@ public class VideoChatDto {
     private Map<String, Object> properties;
 
     private Member member;
-
 }
