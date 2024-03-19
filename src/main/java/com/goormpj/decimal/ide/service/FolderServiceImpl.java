@@ -59,9 +59,16 @@ public class FolderServiceImpl implements FolderService {
     public void deleteFolder(Long folderId) {
         Folder folder = folderRepository.findById(folderId).orElse(null);
         if (folder != null) {
-            folderRepository.delete(folder);
+            deleteFolderRecursively(folder);
         }
+    }
 
+    private void deleteFolderRecursively(Folder folder) {
+        List<Folder> childFolders = folder.getChildFolders();
+        for (Folder childFolder : childFolders) {
+            deleteFolderRecursively(childFolder);
+        }
+        folderRepository.delete(folder);
     }
 
     @Override
