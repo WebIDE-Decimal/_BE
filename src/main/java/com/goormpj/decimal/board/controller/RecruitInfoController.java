@@ -44,7 +44,6 @@ public class RecruitInfoController {
         RecruitPost recruitPost = recruitPostOptional.get();
         RecruitInfo recruitInfo = new RecruitInfo();
         recruitInfo.setDetail(recruitInfoDTO.getDetail());
-        recruitInfo.setUpdatedAt(recruitInfoDTO.getUpdatedAt());
         recruitInfo.setRecruitPost(recruitPost);          //Recruitpost 연결 설정
         recruitInfo.setIsDeleted(recruitInfoDTO.getIsDeleted());
 

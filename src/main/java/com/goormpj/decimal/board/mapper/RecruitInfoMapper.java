@@ -10,7 +10,6 @@ public class RecruitInfoMapper {
     public static RecruitInfoDTO entityToDto(RecruitInfo recruitInfo) {
         RecruitInfoDTO dto = new RecruitInfoDTO();
         dto.setDetail(recruitInfo.getDetail());
-        dto.setUpdatedAt(recruitInfo.getUpdatedAt());
         if (recruitInfo.getRecruitPost() !=null) {
             dto.setRecruitPostId(recruitInfo.getRecruitPost().getId());
         }
@@ -22,7 +21,6 @@ public class RecruitInfoMapper {
     public static RecruitInfo dtoToEntity(RecruitInfoDTO dto) {
         RecruitInfo recruitInfo = new RecruitInfo();
         recruitInfo.setDetail(dto.getDetail());
-        recruitInfo.setUpdatedAt(dto.getUpdatedAt());
 
         recruitInfo.setIsDeleted(dto.getIsDeleted());
         return recruitInfo;

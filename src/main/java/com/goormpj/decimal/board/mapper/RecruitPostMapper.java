@@ -14,7 +14,6 @@ public class RecruitPostMapper {
         dto.setRecruited(recruitPost.getRecruited());
         dto.setState(recruitPost.getState());
         dto.setTarget(recruitPost.getTarget());
-        dto.setLocalDateTime(recruitPost.getLocalDateTime());
         dto.setIsDeleted(recruitPost.getIsDeleted());
         return dto;
     }
@@ -28,7 +27,6 @@ public class RecruitPostMapper {
         recruitPost.setRecruited(dto.getRecruited());
         recruitPost.setState(dto.getState());
         recruitPost.setTarget(dto.getTarget());
-        recruitPost.setLocalDateTime(dto.getLocalDateTime());
         recruitPost.setIsDeleted(dto.getIsDeleted());
         return recruitPost;
     }
