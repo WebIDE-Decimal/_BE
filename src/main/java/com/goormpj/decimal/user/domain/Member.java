@@ -24,4 +24,21 @@ public class Member {
 
     private String profileFilepath;
 
+    @Enumerated(EnumType.STRING)
+    private Authority authority;
+
+    @Builder
+    public Member(String email, String nickname, String password, Authority authority) {
+        this.email = email;
+        this.nickname = nickname;
+        this.password = password;
+        this.authority = authority;
+    }
+
+    public Member(Long id) {
+        this.id = id;
+        this.password = "temppassword1!";
+        this.authority = Authority.ROLE_USER;
+    }
+
 }
