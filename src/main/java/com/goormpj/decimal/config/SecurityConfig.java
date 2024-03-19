@@ -46,13 +46,16 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        LoginFilter loginFilter = new LoginFilter(authenticationManager(authenticationConfiguration) , jwtProvider, refreshTokenRepository);
+        loginFilter.setFilterProcessesUrl("/api/login");
+
         http.httpBasic(basic->basic.disable())
                 .formLogin(form -> form.disable())
                 .csrf(csrf->csrf.disable())
                 .cors(cors -> cors
                         .configurationSource(request -> {
                             CorsConfiguration config = new CorsConfiguration();
-                            config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://43.203.98.60:8080","groomcosmos.site"));
+                            config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://43.203.98.60:8080","https://groomcosmos.site"));
                             config.setAllowedMethods(Arrays.asList("*"));
                             config.setAllowCredentials(true);
                             config.setAllowedHeaders(Arrays.asList("*"));
@@ -63,12 +66,12 @@ public class SecurityConfig {
                             return config;
                         }))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(HttpMethod.GET, "/**").permitAll() // 모든 GET 요청 허용
-                        .requestMatchers(  "/api/users/signup", "/", "/api/users/login","/login", "/api/sessions/**").permitAll()
-                        .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/**").permitAll() // 모든 경로 허용
+                        .requestMatchers("/api/users/signup", "/", "/api/login","/api/logout").permitAll()
+                        .requestMatchers("/api/reissue").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration) , jwtProvider, refreshTokenRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtProvider, refreshTokenRepository), LogoutFilter.class)
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));

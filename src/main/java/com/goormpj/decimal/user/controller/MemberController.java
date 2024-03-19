@@ -29,7 +29,7 @@ public class MemberController {
     private final AuthUtils authUtils;
 
     //로그인한 회원 정보 가져오기 예시
-    @GetMapping("/memberProfile")
+    @PostMapping("/memberProfile")
     public ResponseEntity<Member> getMemberProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Optional<Member> loggedInMember = authUtils.getLoggedInMember(customUserDetails);
         return ResponseEntity.ok().body(loggedInMember.orElseThrow());
@@ -50,6 +50,11 @@ public class MemberController {
         //이메일 중복 확인
         if(memberService.existsByEmail(signUpRequestDTO.getEmail())){
             return ResponseEntity.badRequest().body("이메일 중복 오류");
+        }
+
+        //닉네임 중복 확인
+        if(memberService.existsByNickname(signUpRequestDTO.getNickname())){
+            return ResponseEntity.badRequest().body("닉네임 중복 오류");
         }
 
         // Validation 통과 시 회원가입 로직 수행

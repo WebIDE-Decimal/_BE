@@ -38,6 +38,12 @@ public class MemberServiceImpl implements MemberService{
         return memberRepository.existsByEmail(email);
     }
 
+    //Boolean exisexistsByNickname(String nickname); 닉네임 중복 확인
+    @Override
+    public Boolean existsByNickname(String nickname) {
+        return memberRepository.existsByNickname(nickname);
+    }
+
     //Member findByEmail(String email); 이메일로 회원 정보 조회
     @Override
     public Member findByEmail(String email) {
