@@ -68,6 +68,22 @@ public class VideoChatController {
         }
     }
 
+    // 세션에서 사용자를 제거(삭제)
+    @DeleteMapping("/sessions/{sessionId}/leave")
+    public ResponseEntity<?> leaveSession(
+            @PathVariable String sessionId,
+            @RequestParam String userId)
+    {
+        try {
+            videoChatService.removeUserFromSession(sessionId, userId);
+
+            return ResponseEntity.ok("User removed successfully from the session.");
+        } catch (Exception e) {
+            // 실패 응답 반환
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // 사용자가 연결된 모든 세션 가져오기
     @GetMapping("/{userId}/sessions")
     public ResponseEntity<List<String>> getUserSessions(@PathVariable String userId) {

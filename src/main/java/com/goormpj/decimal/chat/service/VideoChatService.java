@@ -93,6 +93,14 @@ public class VideoChatService {
         videoChatRepository.save(videoChatModel);
     }
 
+    // 사용자를 세션에서 제거하는 메서드
+    public void removeUserFromSession(String sessionId, String userId) throws UserNotFoundException {
+        VideoChatModel videoChatModel = videoChatRepository.findBySessionIdAndMemberId(sessionId, Long.parseLong(userId))
+                .orElseThrow(() -> new UserNotFoundException("User not found in the session"));
+
+        videoChatRepository.delete(videoChatModel);
+    }
+
     public List<String> getUserSessionsId(Long memberId) {
         List<VideoChatModel> sessions = videoChatRepository.findByMember_Id(memberId);
         List<String> sessionIds = sessions.stream()
@@ -144,5 +152,7 @@ public class VideoChatService {
 
         return dtoList;
     }
+
+
 
 }
