@@ -19,14 +19,14 @@ public class RecruitPostServiceImpl implements RecruitPostService {
 
     // 모든 모집 게시글 조회
     @Override
-    public List<RecruitPost> findAll() {
-        return recruitPostRepository.findAll();
+    public List<RecruitPost> findAllNotDeleted() {
+        return recruitPostRepository.findByIsDeletedFalse();
     }
 
     // ID로 모집 게시글 조회
     @Override
-    public Optional<RecruitPost> findById(Long id) {
-        return recruitPostRepository.findById(id);
+    public Optional<RecruitPost> findByIdNotDeleted(Long id) {
+        return recruitPostRepository.findByIdAndIsDeletedFalse(id);
     }
 
     // 모집 게시글 저장
@@ -37,7 +37,10 @@ public class RecruitPostServiceImpl implements RecruitPostService {
 
     // 모집 게시글 삭제
     @Override
-    public void delete(Long id) {
-        recruitPostRepository.deleteById(id);
+    public void softDelete(Long id) {
+        recruitPostRepository.findById(id).ifPresent(post -> {
+            post.setIsDeleted(true);
+            recruitPostRepository.save(post);       // 변경 저장
+        });
     }
 }

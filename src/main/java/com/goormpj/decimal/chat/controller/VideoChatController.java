@@ -1,70 +1,116 @@
 package com.goormpj.decimal.chat.controller;
 
-import java.util.Map;
-
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
+import com.goormpj.decimal.chat.dto.ChatMessageDto;
+import com.goormpj.decimal.chat.dto.VideoChatDto;
+import com.goormpj.decimal.chat.service.VideoChatService;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
-import io.openvidu.java.client.Connection;
-import io.openvidu.java.client.ConnectionProperties;
-import io.openvidu.java.client.OpenVidu;
-import io.openvidu.java.client.OpenViduHttpException;
-import io.openvidu.java.client.OpenViduJavaClientException;
-import io.openvidu.java.client.Session;
-import io.openvidu.java.client.SessionProperties;
+import java.util.List;
 
-@CrossOrigin(origins = "*")
 @RestController
+@RequestMapping("/api/chat")
 public class VideoChatController {
 
-    @Value("${OPENVIDU_URL}")
-    private String OPENVIDU_URL;
+    private final VideoChatService videoChatService;
 
-    @Value("${OPENVIDU_SECRET}")
-    private String OPENVIDU_SECRET;
-
-    private OpenVidu openvidu;
-
-    @PostConstruct
-    public void init() {
-        this.openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
+    @Autowired
+    public VideoChatController(VideoChatService videoChatService) {
+        this.videoChatService = videoChatService;
     }
 
-    /**
-     * @param params The Session properties
-     * @return The Session ID
-     */
-    @PostMapping("/api/sessions")
-    public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params)
-            throws OpenViduJavaClientException, OpenViduHttpException {
-        SessionProperties properties = SessionProperties.fromJson(params).build();
-        Session session = openvidu.createSession(properties);
-        return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
-    }
-
-    /**
-     * @param sessionId The Session in which to create the Connection
-     * @param params    The Connection properties
-     * @return The Token associated to the Connection
-     */
-    @PostMapping("/api/sessions/{sessionId}/connections")
-    public ResponseEntity<String> createConnection(@PathVariable("sessionId") String sessionId,
-                                                   @RequestBody(required = false) Map<String, Object> params)
-            throws OpenViduJavaClientException, OpenViduHttpException {
-        Session session = openvidu.getActiveSession(sessionId);
-        if (session == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    // 세션 생성
+    @PostMapping("/sessions")
+    public ResponseEntity<String> initializeSession(@RequestBody(required = false) VideoChatDto videoChatDto,
+                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails)
+    {
+        try {
+            String sessionId = videoChatService.initializeSession(videoChatDto, customUserDetails);
+            return ResponseEntity.ok(sessionId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
-        Connection connection = session.createConnection(properties);
-        return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
+    }
+
+    // 세션 연결
+    @PostMapping("/sessions/{sessionId}/connections")
+    public ResponseEntity<String> createConnection(@PathVariable String sessionId,
+                                                   @RequestBody(required = false) VideoChatDto videoChatDto,
+                                                   @AuthenticationPrincipal CustomUserDetails customUserDetails)
+    {
+        try {
+            String token = videoChatService.createConnection(sessionId, videoChatDto, customUserDetails);
+            return ResponseEntity.ok(token);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 특정 사용자를 session에 초대(추가)
+    @PostMapping("/sessions/{sessionId}/invite")
+    public ResponseEntity<?> inviteUserToSession(
+            @PathVariable String sessionId,
+            @RequestParam String inviteeId)
+    {
+        try {
+            videoChatService.inviteUserToSession(sessionId, inviteeId);
+
+            return ResponseEntity.ok("User invited successfully to the session.");
+        } catch (Exception e) {
+            // 실패 응답 반환
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 세션에서 사용자를 제거(삭제)
+    @DeleteMapping("/sessions/{sessionId}/leave")
+    public ResponseEntity<?> leaveSession(
+            @PathVariable String sessionId,
+            @RequestParam String userId)
+    {
+        try {
+            videoChatService.removeUserFromSession(sessionId, userId);
+
+            return ResponseEntity.ok("User removed successfully from the session.");
+        } catch (Exception e) {
+            // 실패 응답 반환
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 사용자가 연결된 모든 세션 가져오기
+    @GetMapping("/{userId}/sessions")
+    public ResponseEntity<List<String>> getUserSessions(@PathVariable String userId) {
+        try {
+            Long memberId = Long.parseLong(userId);
+            List<String> sessions = videoChatService.getUserSessionsId(memberId);
+            if (sessions.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(sessions);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 메세지 저장하기
+    @MessageMapping("{sessionId}/chat.sendMessage/")
+    public void sendMessage(@PathVariable String sessionId,
+                            @Payload ChatMessageDto chatMessageDto) {
+        chatMessageDto.setSessionId(sessionId);
+        videoChatService.messageSave(chatMessageDto);
+    }
+
+    // 세션에서 메세지 불러오기
+    @MessageMapping("{sessionId}/chat.getMessages/")
+    public List<ChatMessageDto> getMessages(@PathVariable String sessionId) {
+        return videoChatService.getMessagesBySessionId(sessionId);
     }
 
 }

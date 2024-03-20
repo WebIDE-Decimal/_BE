@@ -8,7 +8,6 @@ public class RecruitPostMapper {
     // Entity-> DTO
     public static RecruitPostDTO entityToDto(RecruitPost recruitPost) {
         RecruitPostDTO dto = new RecruitPostDTO();
-        dto.setId(recruitPost.getId());
         dto.setWriterId(recruitPost.getWriter().getId());
         dto.setTitle(recruitPost.getTitle());
         dto.setContent(recruitPost.getContent());
@@ -23,7 +22,6 @@ public class RecruitPostMapper {
     // DTO를 Entity로 변환하는 메서드
     public static RecruitPost dtoToEntity(RecruitPostDTO dto) {
         RecruitPost recruitPost = new RecruitPost();
-        recruitPost.setId(dto.getId());
 
         recruitPost.setTitle(dto.getTitle());
         recruitPost.setContent(dto.getContent());

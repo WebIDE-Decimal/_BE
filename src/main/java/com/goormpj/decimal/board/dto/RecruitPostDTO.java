@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecruitPostDTO {
-    private Long id; // 게시글 ID
     private Long writerId; // 작성자 ID
     private String title; // 제목
     private String content; // 내용
