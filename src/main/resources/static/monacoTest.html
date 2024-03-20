@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-time Editor with Monaco and Spring Boot</title>
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/editor/editor.main.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<div id="editor" style="width:800px;height:600px;border:1px solid #ccc;"></div>
+<script>
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+        var editor = monaco.editor.create(document.getElementById('editor'), {
+            value: "// Start typing...",
+            language: "javascript"
+        });
+
+        var socket = new SockJS('/ws');
+        var stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function(frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/ide/changes', function(messageOutput) {
+                var message = JSON.parse(messageOutput.body);
+                editor.setValue(message.content);
+            });
+        });
+
+        editor.onDidChangeModelContent(function(event) {
+            var content = editor.getValue();
+            stompClient.send("/app/change", {}, JSON.stringify({ content: content, position: 0 })); // position은 예시 값
+        });
+    });
+</script>
+</body>
+</html>
