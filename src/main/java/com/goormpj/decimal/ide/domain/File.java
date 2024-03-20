@@ -10,7 +10,7 @@ public class File {
 
     @Id
     @GeneratedValue
-    @Column(name = "fild_id")
+    @Column(name = "file_id")
     private Long id;
 
     private String fileName;

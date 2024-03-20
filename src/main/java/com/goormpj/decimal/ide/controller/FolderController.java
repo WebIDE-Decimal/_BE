@@ -1,6 +1,7 @@
 package com.goormpj.decimal.ide.controller;
 
 import com.goormpj.decimal.ide.domain.Folder;
+import com.goormpj.decimal.ide.dto.FolderRequestDTO;
 import com.goormpj.decimal.ide.service.FolderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,9 +18,10 @@ public class FolderController {
     private final FolderService folderService;
 
     // 새 폴더 생성
-    @PostMapping("list")
-    public ResponseEntity<Folder> createFolder(@RequestParam String folderName, @RequestParam Long parentId) {
-        Folder newFolder = folderService.createFolder(folderName, parentId);
+    @PostMapping("/list")
+    public ResponseEntity<Folder> createFolder(@RequestBody FolderRequestDTO folderRequestDTO) {
+
+        Folder newFolder = folderService.createFolder(folderRequestDTO.getFolderName(), folderRequestDTO.getParentId());
 
         if (newFolder != null) {
             return new ResponseEntity<>(newFolder, HttpStatus.CREATED);
