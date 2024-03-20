@@ -3,14 +3,13 @@ package com.goormpj.decimal.board.controller;
 import com.goormpj.decimal.board.dto.RecruitPostDTO;
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.board.mapper.RecruitPostMapper;
+import com.goormpj.decimal.board.service.RecruitInfoServiceImpl;
 import com.goormpj.decimal.board.service.RecruitPostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.goormpj.decimal.user.domain.Member;
-import com.goormpj.decimal.user.repository.MemberRepository;
-import java.util.Optional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,12 +17,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/recruit")
 public class RecruitPostController {
     private final RecruitPostService recruitPostService;
-    private final MemberRepository memberRepository;    //memberRepositiry 추가
 
     @Autowired
-    public RecruitPostController(RecruitPostService recruitPostService, MemberRepository memberRepository) {
+    public RecruitPostController(RecruitPostService recruitPostService) {
         this.recruitPostService = recruitPostService;
-        this.memberRepository = memberRepository;
     }
 
     // 모든 모집 게시글 조회
@@ -39,18 +36,8 @@ public class RecruitPostController {
     // 새 모집 게시글 생성
     @PostMapping
     public ResponseEntity<RecruitPostDTO> createRecruitPost(@RequestBody RecruitPostDTO recruitPostDTO) {
-        // writerId를 사용하여 Member 엔티티 조회
-        Optional<Member> writerOptional = memberRepository.findById(recruitPostDTO.getWriterId());
-        if (!writerOptional.isPresent()) {
-            // Member가 존재하지 않는 경우, 적절한 오류 처리
-            return ResponseEntity.badRequest().body(null); // 또는 다른 오류 응답
-        }
 
-        // DTO에서 엔티티로 변환 (이미 존재하는 로직)
         RecruitPost recruitPost = RecruitPostMapper.dtoToEntity(recruitPostDTO);
-
-        // writer 설정
-        recruitPost.setWriter(writerOptional.get());
         // 엔티티 저장
         RecruitPost savedRecruitPost = recruitPostService.save(recruitPost);
 
