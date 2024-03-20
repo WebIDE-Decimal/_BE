@@ -53,6 +53,7 @@ public class VideoChatService {
 
 
     public String initializeSession(VideoChatDto videoChatDto, @AuthenticationPrincipal CustomUserDetails customUserDetails) throws OpenViduJavaClientException, OpenViduHttpException {
+        videoChatDto.setIsPublisher(true);
         SessionProperties properties = SessionProperties.fromJson(videoChatDto.getProperties()).build();
         Session session = this.openVidu.createSession(properties);
         String sessionId = session.getSessionId();
