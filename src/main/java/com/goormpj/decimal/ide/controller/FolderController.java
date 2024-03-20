@@ -17,7 +17,7 @@ public class FolderController {
     private final FolderService folderService;
 
     // 새 폴더 생성
-    @PostMapping
+    @PostMapping("list")
     public ResponseEntity<Folder> createFolder(@RequestParam String folderName, @RequestParam Long parentId) {
         Folder newFolder = folderService.createFolder(folderName, parentId);
 
@@ -50,7 +50,7 @@ public class FolderController {
     }
 
     // 모든 폴더 조회
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<List<Folder>> getAllFolders() {
         List<Folder> folders = folderService.getAllFolders();
         return new ResponseEntity<>(folders, HttpStatus.OK);
