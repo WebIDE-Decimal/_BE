@@ -1,7 +1,11 @@
 package com.goormpj.decimal.chat.service;
 
+import com.goormpj.decimal.chat.dto.ChatMessageDto;
 import com.goormpj.decimal.chat.dto.VideoChatDto;
+import com.goormpj.decimal.chat.mapper.ChatMessageMapper;
+import com.goormpj.decimal.chat.model.ChatMessageModel;
 import com.goormpj.decimal.chat.model.VideoChatModel;
+import com.goormpj.decimal.chat.repository.ChatMessageRepository;
 import com.goormpj.decimal.chat.repository.VideoChatRepository;
 import com.goormpj.decimal.user.domain.Member;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
@@ -37,16 +41,19 @@ public class VideoChatService {
     private final AuthUtils authUtils;
     private final VideoChatRepository videoChatRepository;
     private final MemberRepository memberRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Autowired
-    public VideoChatService(VideoChatRepository videoChatRepository, AuthUtils authUtils, MemberRepository memberRepository) {
+    public VideoChatService(VideoChatRepository videoChatRepository, AuthUtils authUtils, MemberRepository memberRepository, ChatMessageRepository chatMessageRepository) {
         this.videoChatRepository = videoChatRepository;
         this.authUtils = authUtils;
         this.memberRepository = memberRepository;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
 
     public String initializeSession(VideoChatDto videoChatDto, @AuthenticationPrincipal CustomUserDetails customUserDetails) throws OpenViduJavaClientException, OpenViduHttpException {
+        videoChatDto.setIsPublisher(true);
         SessionProperties properties = SessionProperties.fromJson(videoChatDto.getProperties()).build();
         Session session = this.openVidu.createSession(properties);
         String sessionId = session.getSessionId();
@@ -121,5 +128,21 @@ public class VideoChatService {
         }
     }
 
+    // 메세지 저장
+    public void messageSave(ChatMessageDto chatMessageDto) {
+        ChatMessageModel chatMessageModel = ChatMessageMapper.toModel(chatMessageDto);
+        chatMessageRepository.save(chatMessageModel);
+    }
+
+    // 세션id로 메세지 불러오기
+    public List<ChatMessageDto> getMessagesBySessionId(String sessionId) {
+        List<ChatMessageModel> messages = chatMessageRepository.findBySessionId(sessionId);
+
+        List<ChatMessageDto> dtoList = messages.stream()
+                .map(ChatMessageMapper::toDto)
+                .collect(Collectors.toList());
+
+        return dtoList;
+    }
 
 }

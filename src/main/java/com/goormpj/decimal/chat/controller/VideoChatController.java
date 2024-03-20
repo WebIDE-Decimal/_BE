@@ -1,12 +1,14 @@
 package com.goormpj.decimal.chat.controller;
 
+import com.goormpj.decimal.chat.dto.ChatMessageDto;
 import com.goormpj.decimal.chat.dto.VideoChatDto;
-import com.goormpj.decimal.chat.repository.VideoChatRepository;
 import com.goormpj.decimal.chat.service.VideoChatService;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,10 +59,8 @@ public class VideoChatController {
             @RequestParam String inviteeId)
     {
         try {
-            // VideoChatService에서 실제 초대 로직 수행
             videoChatService.inviteUserToSession(sessionId, inviteeId);
 
-            // 성공 응답 반환
             return ResponseEntity.ok("User invited successfully to the session.");
         } catch (Exception e) {
             // 실패 응답 반환
@@ -82,4 +82,19 @@ public class VideoChatController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // 메세지 저장하기
+    @MessageMapping("{sessionId}/chat.sendMessage/")
+    public void sendMessage(@PathVariable String sessionId,
+                            @Payload ChatMessageDto chatMessageDto) {
+        chatMessageDto.setSessionId(sessionId);
+        videoChatService.messageSave(chatMessageDto);
+    }
+
+    // 세션에서 메세지 불러오기
+    @MessageMapping("{sessionId}/chat.getMessages/")
+    public List<ChatMessageDto> getMessages(@PathVariable String sessionId) {
+        return videoChatService.getMessagesBySessionId(sessionId);
+    }
+
 }
