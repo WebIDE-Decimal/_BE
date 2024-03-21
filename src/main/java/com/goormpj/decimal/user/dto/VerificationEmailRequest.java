@@ -15,7 +15,7 @@ public class VerificationEmailRequest {
 
     @NotNull
     @Email(message = "유효한 이메일 주소를 입력하세요.")
-    private String userEmail;
+    private String email;
 
 
 }
