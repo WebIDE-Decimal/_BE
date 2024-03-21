@@ -6,7 +6,6 @@ import com.goormpj.decimal.user.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -33,13 +32,13 @@ public class MailController {
             return ResponseEntity.badRequest().body(errors.toString());
         }
 
-        if(memberService.existsByEmail(verificationEmailRequest.getUserEmail())){
+        if(memberService.existsByEmail(verificationEmailRequest.getEmail())){
             return ResponseEntity.badRequest().body("이미 가입된 이메일 주소입니다.");
         }
 
 
         try {
-            mailService.sendMail(verificationEmailRequest.getUserEmail());
+            mailService.sendMail(verificationEmailRequest.getEmail());
             return ResponseEntity.ok("인증 메일 전송 완료");
         } catch (Exception e) {
             log.error("Failed to send verification email", e);
