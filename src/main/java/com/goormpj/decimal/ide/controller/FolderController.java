@@ -18,10 +18,10 @@ public class FolderController {
     private final FolderService folderService;
 
     // 새 폴더 생성
-    @PostMapping("/list")
+    @PostMapping("/studies")
     public ResponseEntity<Folder> createFolder(@RequestBody FolderRequestDTO folderRequestDTO) {
 
-        Folder newFolder = folderService.createFolder(folderRequestDTO.getFolderName(), folderRequestDTO.getParentId());
+        Folder newFolder = folderService.createFolderWithFile(folderRequestDTO.getFolderName(), folderRequestDTO.getParentId(), folderRequestDTO.getFileName());
 
         if (newFolder != null) {
             return new ResponseEntity<>(newFolder, HttpStatus.CREATED);
@@ -52,7 +52,7 @@ public class FolderController {
     }
 
     // 모든 폴더 조회
-    @GetMapping("/list")
+    @GetMapping("/studies")
     public ResponseEntity<List<Folder>> getAllFolders() {
         List<Folder> folders = folderService.getAllFolders();
         return new ResponseEntity<>(folders, HttpStatus.OK);

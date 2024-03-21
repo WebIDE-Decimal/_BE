@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FolderRequestDTO {
+public class StudyResponseDTO {
 
-    private String folderName;
-    private Long parentId;
-    private String fileName;
+    private String name;
+    private int memberCount;
 
 }

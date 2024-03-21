@@ -1,9 +1,11 @@
 package com.goormpj.decimal.ide.service;
 
+import com.goormpj.decimal.ide.domain.File;
 import com.goormpj.decimal.ide.domain.Folder;
+import com.goormpj.decimal.ide.domain.Study;
+import com.goormpj.decimal.ide.repository.FileRepository;
 import com.goormpj.decimal.ide.repository.FolderRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,49 +17,46 @@ import java.util.List;
 @Transactional
 public class FolderServiceImpl implements FolderService {
 
-    private FolderRepository folderRepository;
+    private final FolderRepository folderRepository;
+    private final FileRepository fileRepository;
 
     @Override
-    public Folder createFolder(String folderName, Long parentId) {
+    public void createRootFolderForStudy(Study study) {
+        // 최상위 폴더 생성
+        Folder newFolder = new Folder();
+        newFolder.setFolderName(study.getName()); // 스터디명으로 폴더명 설정
+        newFolder.setParentFolder(null); // 최상위 폴더의 부모 폴더는 null 설정
+        newFolder.setDepth(0); // 최상위 폴더의 깊이는 0으로 설정
+        newFolder.setStudy(study); // 스터디와 연관 설정
+        // 최상위 폴더 저장
+        folderRepository.save(newFolder);
+    }
+
+    @Override
+    public Folder createFolderWithFile(String folderName, Long parentId, String fileName) {
         Folder parentFolder = null;
         int depth = 0;
 
         if (parentId != null) {
             parentFolder = folderRepository.findById(parentId)
                     .orElseThrow(() -> new IllegalArgumentException("부모 폴더를 찾을 수 없습니다."));
-            if (isDescendant(parentFolder, parentId)) {
-                throw new IllegalArgumentException("부모 폴더가 현재 폴더의 하위 폴더를 가리킬 수 없습니다.");
-            }
             depth = parentFolder.getDepth() + 1;
-        } else {
-            // parentId가 null이면서 부모 폴더가 없는 경우 최상위 폴더를 생성
-            List<Folder> topLevelFolders = folderRepository.findByParentFolderIsNull();
-            if (!topLevelFolders.isEmpty()) {
-                throw new IllegalArgumentException("최상위 폴더는 하나만 생성할 수 있습니다.");
-            }
         }
 
         Folder newFolder = new Folder(folderName, parentFolder, depth);
-        folderRepository.save(newFolder);// 새로운 폴더 저장
+        folderRepository.save(newFolder);
 
-        // 부모 폴더가 있고, 새로운 폴더가 생성되었다면 부모 폴더의 childFolders에 추가
-        if (parentFolder != null) {
-            parentFolder.getChildFolders().add(newFolder);
-            folderRepository.save(parentFolder); // 부모 폴더 업데이트
+        // 파일 생성
+        if (fileName != null && !fileName.isEmpty()) {
+            File newStudyFile = new File();
+            newStudyFile.setFileName(fileName);
+            fileRepository.save(newStudyFile);
+
+            newFolder.getStudyFiles().add(newStudyFile);
+            folderRepository.save(newFolder);
         }
 
         return newFolder;
-    }
-
-
-    private boolean isDescendant(Folder folder, Long parentId) {
-        if (folder == null || folder.getParentFolder() == null) {
-            return false; // 현재 폴더가 null이거나 부모 폴더가 없는 경우 false 반환
-        }
-        if (folder.getId().equals(parentId)) {
-            return true; // 현재 폴더의 id가 주어진 parentId와 같은 경우 true 반환
-        }
-        return isDescendant(folder.getParentFolder(), parentId); // 부모 폴더로 재귀 호출
     }
 
     @Override

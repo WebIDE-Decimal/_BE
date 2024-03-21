@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Getter @Setter
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id") // 순환 참조 제거
 public class Folder {
 
     @Id @GeneratedValue
@@ -28,9 +28,13 @@ public class Folder {
     private List<Folder> childFolders;
 
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL)
-    private List<File> files = new ArrayList<>();
+    private List<File> studyFiles = new ArrayList<>();
 
     private int depth;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_id")
+    private Study study;
 
     public Folder() {
     }
