@@ -144,7 +144,7 @@ public class VideoChatService {
 
     // 세션id로 메세지 불러오기
     public List<ChatMessageDto> getMessagesBySessionId(String sessionId) {
-        List<ChatMessageModel> messages = chatMessageRepository.findBySessionId(sessionId);
+        List<ChatMessageModel> messages = chatMessageRepository.findBySession_SessionId(sessionId);
 
         List<ChatMessageDto> dtoList = messages.stream()
                 .map(ChatMessageMapper::toDto)
