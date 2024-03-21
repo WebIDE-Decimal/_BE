@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +28,8 @@ public class MailService {
     @Value("${spring.verificationUrl}")
     private String verificationUrl;
 
-    public void sendMail(String userEmail) throws IOException {
-        MailToken mailToken = generateMailToken(userEmail);
+    public void sendMail(String email, Boolean resend) throws IOException {
+        MailToken mailToken = generateMailToken(email);
         String link = generateVerificationMailLink(mailToken.getToken());
         String htmlContent = readHtmlContent("verification-email.html");
         htmlContent = htmlContent.replace("{{verificationLink}}", link);
@@ -36,14 +37,21 @@ public class MailService {
         String finalHtmlContent = htmlContent;
         MimeMessagePreparator preparator = mimeMessage -> {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-            helper.setTo(userEmail);
+            helper.setTo(email);
             helper.setSubject("[COSMO'S] 가입 인증 메일입니다.");
 
             helper.setText(finalHtmlContent, true);
         };
 
         javaMailSender.send(preparator);
+
+        MailToken token = mailTokenRepository.findByEmail(email);
+        if(resend || token != null){
+            mailTokenRepository.delete(token);
+        }
+
         mailTokenRepository.save(mailToken);
+
 
     }
 

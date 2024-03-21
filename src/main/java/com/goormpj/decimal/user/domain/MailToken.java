@@ -2,7 +2,6 @@ package com.goormpj.decimal.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,13 +20,13 @@ public class MailToken {
     @Column(unique = true)
     private String token;
 
-    private String userEmail;
+    private String email;
     private LocalDateTime expiryDate;
 
     @Builder
-    private MailToken(String token, String userEmail, LocalDateTime expiryDate) {
+    private MailToken(String token, String email, LocalDateTime expiryDate) {
         this.token = token;
-        this.userEmail = userEmail;
+        this.email = email;
         this.expiryDate = expiryDate;
     }
 
@@ -36,7 +35,7 @@ public class MailToken {
         String token = generateToken(); // 토큰 생성
         return MailToken.builder()
                 .token(token)
-                .userEmail(userEmail)
+                .email(userEmail)
                 .expiryDate(expiryDate)
                 .build();
     }
