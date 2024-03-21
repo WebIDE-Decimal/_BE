@@ -9,4 +9,5 @@ public interface MailTokenRepository extends JpaRepository<MailToken, Long> {
 
     MailToken findExpriyDateByToken(String token);
 
+    MailToken findByEmail(String email);
 }
