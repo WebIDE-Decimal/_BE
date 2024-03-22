@@ -24,7 +24,7 @@ public class RecruitInfo {
 
     //Member 관계성을 나타내는 외래키
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")             //Member 참조를 위한 필드와 mapping
+    @JoinColumn(name = "writer_id")             //Member 참조를 위한 필드와 mapping
     private Member member;
 
     private String motivation;                      //지원 동기
