@@ -11,7 +11,6 @@ public class RecruitPostMapper {
         recruitPost.setTitle(requestDTO.getTitle());
         recruitPost.setContent(requestDTO.getContent());
         recruitPost.setRecruited(requestDTO.getRecruited());
-        recruitPost.setState(requestDTO.getState());
         recruitPost.setTarget(requestDTO.getTarget());
 
         return recruitPost;

@@ -5,10 +5,14 @@ import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.service.RecruitPostService;
 import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.entity.RecruitPost;
+import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication; // 추가
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,10 +21,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/recruit")
 public class RecruitPostController {
     private final RecruitPostService recruitPostService;
+    private final MemberService memberService;
 
     @Autowired
-    public RecruitPostController(RecruitPostService recruitPostService) {
+    public RecruitPostController(RecruitPostService recruitPostService, MemberService memberService) {
         this.recruitPostService = recruitPostService;
+        this.memberService = memberService;
     }
 
     // 모든 모집 게시글 조회
@@ -42,7 +48,17 @@ public class RecruitPostController {
     // 새 모집 게시글 생성
     @PostMapping
     public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO) {
-        RecruitPost savedPost = recruitPostService.createRecruitPost(RecruitPostMapper.requestDtoToEntity(requestDTO));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+        Member writer = memberService.findByEmail(userEmail);
+
+        //state 상태 및 writer 설정
+        RecruitPost recruitPost = RecruitPostMapper.requestDtoToEntity(requestDTO);
+        recruitPost.setWriter(writer);
+        recruitPost.setState(false);    // state 초기값
+        RecruitPost savedPost = recruitPostService.createRecruitPost(recruitPost);
+
         RecruitPostResponseDTO responseDTO = RecruitPostMapper.entityToResponseDto(savedPost);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
@@ -64,5 +80,10 @@ public class RecruitPostController {
             return ResponseEntity.noContent().build(); // 게시글 삭제후 응답
     }
 
+    @PatchMapping("/{id}/state")
+    public ResponseEntity<Void> updatePostState(@PathVariable Long id, @RequestParam Boolean newState) {
+        recruitPostService.updateRecruitmentState(id, newState);
+        return ResponseEntity.ok().build();
+    }
 
 }

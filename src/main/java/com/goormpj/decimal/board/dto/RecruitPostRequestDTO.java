@@ -8,10 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RecruitPostRequestDTO {
-    private Long writerId; // 작성자 ID 추가
     private String title;           // 작성 게시글 제목
     private String content;         // 작성 게시글 내용
     private Integer recruited;      // 모집 인원
-    private Boolean state;           //모집 상태
     private String target;          // 모집 대상
 }
