@@ -42,7 +42,7 @@ public class RecruitInfoController {
     }
 
     // 특정 유저가 작성한 모든 모집 게시글 불러오기
-    @GetMapping("/mypost/info}")
+    @GetMapping("/mypost/info")
     public ResponseEntity<List<RecruitInfoDTO>> getMyRecruitInfos(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         List<RecruitInfoDTO> myRecruitInfoDTOs = recruitInfoService.getMyRecruitInfos(customUserDetails);
         return ResponseEntity.ok(myRecruitInfoDTOs);
