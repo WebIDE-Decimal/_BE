@@ -37,7 +37,8 @@ public class RecruitPostServiceImpl implements RecruitPostService {
 
     @Override
     public RecruitPost createRecruitPost(RecruitPost recruitPost) {
-        // Assuming recruitPost already includes a valid writer (Member)
+        Member writer = memberRepository.findById(recruitPost.getWriter().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Writer not found with Id: " + recruitPost.getWriter().getId()));
         return recruitPostRepository.save(recruitPost);
     }
 
