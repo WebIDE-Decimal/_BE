@@ -1,5 +1,6 @@
 package com.goormpj.decimal.ide.service;
 
+import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.ide.domain.Study;
 import com.goormpj.decimal.ide.domain.Folder;
 import com.goormpj.decimal.ide.repository.FolderRepository;
@@ -19,22 +20,26 @@ public class StudyServiceImpl implements StudyService {
     private final StudyRepository studyRepository;
     private final FolderService folderService;
 
-    // 스터디 생성 및 최상위 폴더 생성
     @Override
-    public Study createStudy(String name, int count) {
-        // 스터디 생성
-        Study newStudy = new Study();
-        newStudy.setName(name);
-        newStudy.setMemberCount(count);
+    public Study createStudy(RecruitPost recruitPost) {
+        Study newStudy = null;
 
-        // 스터디 저장
-        studyRepository.save(newStudy);
-
-        // 최상위 폴더 생성 및 스터디명으로 설정
-        folderService.createRootFolderForStudy(newStudy);
+        // 상태가 false인 경우에만 스터디 생성
+        if (recruitPost.getState().equals("false")) {
+            newStudy = Study.createStudy(recruitPost);
+            // 스터디 저장
+            studyRepository.save(newStudy);
+        }
 
         return newStudy;
     }
+
+    @Override
+    public void createRootFolderForStudy(Study study) {
+        // 스터디명으로 최상위 폴더 생성
+        folderService.createRootFolderForStudy(study);
+    }
+
 
     // 스터디 ID로 스터디를 조회하는 메서드
     @Override

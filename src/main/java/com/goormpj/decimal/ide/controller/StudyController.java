@@ -1,5 +1,7 @@
 package com.goormpj.decimal.ide.controller;
 
+import com.goormpj.decimal.board.dto.RecruitPostDTO;
+import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.ide.domain.Folder;
 import com.goormpj.decimal.ide.domain.Study;
 import com.goormpj.decimal.ide.dto.StudyRequestDTO;
@@ -19,9 +21,14 @@ public class StudyController {
 
     // 스터디 생성 시 최상위 폴더 생성
     @PostMapping("/study")
-    public ResponseEntity<Study> createStudy(@RequestBody StudyRequestDTO studyRequestDTO) {
-        Study newStudy = studyService.createStudy(studyRequestDTO.getName(), studyRequestDTO.getMemberCount());
-        return new ResponseEntity<>(newStudy, HttpStatus.CREATED);
+    public ResponseEntity<String> createStudyFromRecruitPost(@RequestBody RecruitPost recruitPost) {
+        Study newStudy = studyService.createStudy(recruitPost);
+        if (newStudy != null) {
+            studyService.createRootFolderForStudy(newStudy);
+            return ResponseEntity.ok("스터디가 생성되었습니다.");
+        } else {
+            return ResponseEntity.badRequest().body("스터디 생성에 실패했습니다.");
+        }
     }
 
     // 스터디 상세 정보 조회 및 화면에 표시
