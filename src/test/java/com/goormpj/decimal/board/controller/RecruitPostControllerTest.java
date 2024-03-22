@@ -3,6 +3,7 @@ package com.goormpj.decimal.board.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.board.service.RecruitPostService;
+import com.goormpj.decimal.user.domain.Authority;
 import com.goormpj.decimal.user.domain.Member;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ public class RecruitPostControllerTest {
     @BeforeEach
     public void setUp() {
         // Mock 객체 설정 및 기본 데이터 준비
-        Member writer = new Member(1L, "test@example.com", "tester", "securepassword", "profile.png", "/path/to/profile");
+        Member writer = new Member(1L, "test@example.com", "tester", "securepassword", "profile.png", "/path/to/profile", Authority.ROLE_USER);
         post = new RecruitPost("Sample Post", "Sample content", writer, false, 3, true, "Everyone");
 
         when(recruitPostService.createRecruitPost(any(RecruitPost.class))).thenReturn(post);
