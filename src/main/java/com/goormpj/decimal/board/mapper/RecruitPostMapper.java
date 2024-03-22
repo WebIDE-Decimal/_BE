@@ -1,33 +1,33 @@
 package com.goormpj.decimal.board.mapper;
 
-import com.goormpj.decimal.board.dto.RecruitPostDTO;
+import com.goormpj.decimal.board.dto.RecruitPostRequestDTO;
+import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.entity.RecruitPost;
 
 public class RecruitPostMapper {
 
-    // Entity-> DTO
-    public static RecruitPostDTO entityToDto(RecruitPost recruitPost) {
-        RecruitPostDTO dto = new RecruitPostDTO();
-        dto.setWriterId(recruitPost.getWriter().getId());
-        dto.setTitle(recruitPost.getTitle());
-        dto.setContent(recruitPost.getContent());
-        dto.setRecruited(recruitPost.getRecruited());
-        dto.setState(recruitPost.getState());
-        dto.setTarget(recruitPost.getTarget());
-        dto.setIsDeleted(recruitPost.getIsDeleted());
-        return dto;
+    public static RecruitPost requestDtoToEntity(RecruitPostRequestDTO requestDTO) {
+        RecruitPost recruitPost = new RecruitPost();
+        recruitPost.setTitle(requestDTO.getTitle());
+        recruitPost.setContent(requestDTO.getContent());
+        recruitPost.setRecruited(requestDTO.getRecruited());
+        recruitPost.setState(requestDTO.getState());
+        recruitPost.setTarget(requestDTO.getTarget());
+
+        return recruitPost;
     }
 
-    // DTO를 Entity로 변환하는 메서드
-    public static RecruitPost dtoToEntity(RecruitPostDTO dto) {
-        RecruitPost recruitPost = new RecruitPost();
-
-        recruitPost.setTitle(dto.getTitle());
-        recruitPost.setContent(dto.getContent());
-        recruitPost.setRecruited(dto.getRecruited());
-        recruitPost.setState(dto.getState());
-        recruitPost.setTarget(dto.getTarget());
-        recruitPost.setIsDeleted(dto.getIsDeleted());
-        return recruitPost;
+    public static RecruitPostResponseDTO entityToResponseDto(RecruitPost recruitPost) {
+        return new RecruitPostResponseDTO(
+                recruitPost.getId(),
+                recruitPost.getTitle(),
+                recruitPost.getContent(),
+                recruitPost.getRecruited(),
+                recruitPost.getState(),
+                recruitPost.getTarget(),
+                recruitPost.getCreatedAt(),
+                recruitPost.getUpdatedAt(),
+                recruitPost.getIsDeleted()
+        );
     }
 }

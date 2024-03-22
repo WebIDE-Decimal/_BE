@@ -2,14 +2,16 @@ package com.goormpj.decimal.board.entity;
 
 import com.goormpj.decimal.user.domain.Member;  // 경로 변경
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 public class RecruitPost {
     @Id
@@ -17,13 +19,13 @@ public class RecruitPost {
     private Long id; // 게시글 ID
 
     @ManyToOne
-    @JoinColumn(name = "writer_id", referencedColumnName = "id")
+    @JoinColumn(referencedColumnName = "id")
     private Member writer; // 작성자 ID
 
     private String title; // 제목
     private String content; // 내용
     private Integer recruited; // 모집 인원
-    private String state; // 모집 상태
+    private Boolean state; // 모집 상태
     private String target; // 모집 대상
 
     @CreationTimestamp
@@ -35,4 +37,18 @@ public class RecruitPost {
     private LocalDateTime updatedAt;
 
     private Boolean isDeleted = false; // 삭제 기본값을 false로 수정
+
+    // 생성자 추가
+    public RecruitPost(String title, String content, Member writer, boolean isDeleted, Integer recruited,
+                       Boolean state, String target) {
+        this.title = title;
+        this.content = content;
+        this.writer = writer;
+        this.isDeleted = isDeleted;
+        this.recruited = recruited;
+        this.state = state;
+        this.target = target;
+    }
+
+
 }
