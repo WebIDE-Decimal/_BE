@@ -7,5 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RecruitInfoRepository extends JpaRepository<RecruitInfo, Long> {
-    Optional<RecruitInfo> findByIdAndIsDeletedFalse(Long id);
+    List<RecruitInfo> findByRecruitPostIdAndIsDeletedFalse(Long recruitPostId);
+    List<RecruitInfo> findByMemberIdAndIsDeletedFalse(Long memberId);
+    List<RecruitInfo> findByMemberId(Long memberId);
+
 }

@@ -2,39 +2,83 @@ package com.goormpj.decimal.board.service;
 
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
 import com.goormpj.decimal.board.entity.RecruitInfo;
+import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.board.entity.State;
 import com.goormpj.decimal.board.mapper.RecruitInfoMapper;
 import com.goormpj.decimal.board.repository.RecruitInfoRepository;
+import com.goormpj.decimal.board.repository.RecruitPostRepository;
+import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
+import com.goormpj.decimal.user.repository.MemberRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RecruitInfoServiceImpl implements RecruitInfoService {
     private final RecruitInfoRepository recruitInfoRepository;
+    private final RecruitPostRepository recruitPostRepository;
+    private final MemberRepository memberRepository;
 
-    public RecruitInfoServiceImpl(RecruitInfoRepository recruitInfoRepository) {
+    @Autowired
+    public RecruitInfoServiceImpl(RecruitInfoRepository recruitInfoRepository,
+                                  MemberRepository memberRepository,
+                                  RecruitPostRepository recruitPostRepository) {
         this.recruitInfoRepository = recruitInfoRepository;
+        this.memberRepository = memberRepository;
+        this.recruitPostRepository = recruitPostRepository;
     }
 
     // 게시글 생성
     @Override
     @Transactional
-    public RecruitInfoDTO createRecruitInfo(RecruitInfoDTO recruitInfoDTO) {
+    public RecruitInfoDTO createRecruitInfo(RecruitInfoDTO recruitInfoDTO, Long parentPostId, CustomUserDetails customUserDetails) {
+        String userId = customUserDetails.getUsername();
+
+        Member member = memberRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+
+        RecruitPost recruitPost = recruitPostRepository.findById(parentPostId)
+                .orElseThrow(() -> new RuntimeException("RecruitPost not found"));
+
         RecruitInfo recruitInfo = RecruitInfoMapper.toEntity(recruitInfoDTO);
+        recruitInfo.setMember(member);
+        recruitInfo.setRecruitPost(recruitPost);
+
+        recruitInfo.setState(State.WAITING);
+        recruitInfo.setIsDeleted(false);
+
         recruitInfo = recruitInfoRepository.save(recruitInfo);
+
         return RecruitInfoMapper.toDto(recruitInfo);
     }
 
 
-    // 게시글 조회
+    // 부모 게시글에 딸린 모집 게시글 모두 불러오기
     @Override
     @Transactional(readOnly = true)
-    public RecruitInfoDTO getRecruitInfoById(Long id) {
-        RecruitInfo recruitInfo = recruitInfoRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("RecruitInfo not found for id: " + id));
-        return RecruitInfoMapper.toDto(recruitInfo);
+    public List<RecruitInfoDTO> getRecruitInfosByParentPostId(Long parentPostId) {
+        List<RecruitInfo> recruitInfos = recruitInfoRepository.findByRecruitPostIdAndIsDeletedFalse(parentPostId);
+
+        return recruitInfos.stream()
+                .map(RecruitInfoMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    // 특정 유저가 작성한 모든 모집 게시글 불러오기
+    @Override
+    @Transactional(readOnly = true)
+    public List<RecruitInfoDTO> getMyRecruitInfos(CustomUserDetails customUserDetails) {
+        Long userId = Long.valueOf(customUserDetails.getUsername());
+        List<RecruitInfo> recruitInfos = recruitInfoRepository.findByMemberIdAndIsDeletedFalse(userId);
+
+        return recruitInfos.stream()
+                .map(RecruitInfoMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     // 게시글 논리삭제

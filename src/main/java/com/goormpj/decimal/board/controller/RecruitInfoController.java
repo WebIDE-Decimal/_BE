@@ -1,12 +1,19 @@
 package com.goormpj.decimal.board.controller;
 
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
+import com.goormpj.decimal.board.entity.RecruitInfo;
+import com.goormpj.decimal.board.mapper.RecruitInfoMapper;
 import com.goormpj.decimal.board.service.RecruitInfoService;
+import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
+import com.goormpj.decimal.user.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/recruitInfo")
@@ -19,18 +26,26 @@ public class RecruitInfoController {
     }
 
     // 모집 게시글 생성
-    @PostMapping
-    public ResponseEntity<RecruitInfoDTO> createRecruitInfo(@RequestBody RecruitInfoDTO recruitInfoDTO,
+    @PostMapping("/{parentPostId}")
+    public ResponseEntity<RecruitInfoDTO> createRecruitInfo(@PathVariable("parentPostId") Long parentPostId,
+                                                            @RequestBody RecruitInfoDTO recruitInfoDTO,
                                                             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        RecruitInfoDTO createdRecruitInfoDTO = recruitInfoService.createRecruitInfo(recruitInfoDTO);
+        RecruitInfoDTO createdRecruitInfoDTO = recruitInfoService.createRecruitInfo(recruitInfoDTO, parentPostId, customUserDetails);
         return new ResponseEntity<>(createdRecruitInfoDTO, HttpStatus.CREATED);
     }
 
-    // 모집 게시글 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<RecruitInfoDTO> getRecruitInfo(@PathVariable Long id) {
-        RecruitInfoDTO recruitInfoDTO = recruitInfoService.getRecruitInfoById(id);
-        return ResponseEntity.ok(recruitInfoDTO);
+    // 부모 게시글에 딸린 모집 게시글 모두 불러오기
+    @GetMapping("/{parentPostId}")
+    public ResponseEntity<List<RecruitInfoDTO>> getRecruitInfosByParentPostId(@PathVariable Long parentPostId) {
+        List<RecruitInfoDTO> recruitInfoDTOs = recruitInfoService.getRecruitInfosByParentPostId(parentPostId);
+        return ResponseEntity.ok(recruitInfoDTOs);
+    }
+
+    // 특정 유저가 작성한 모든 모집 게시글 불러오기
+    @GetMapping("/mypost/info}")
+    public ResponseEntity<List<RecruitInfoDTO>> getMyRecruitInfos(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        List<RecruitInfoDTO> myRecruitInfoDTOs = recruitInfoService.getMyRecruitInfos(customUserDetails);
+        return ResponseEntity.ok(myRecruitInfoDTOs);
     }
 
     // 모집 게시글 삭제
