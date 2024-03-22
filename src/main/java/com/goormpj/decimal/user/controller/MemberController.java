@@ -32,7 +32,7 @@ public class MemberController {
     @PostMapping("/memberProfile")
     public ResponseEntity<Member> getMemberProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Optional<Member> loggedInMember = authUtils.getLoggedInMember(customUserDetails);
-        return ResponseEntity.ok().body(loggedInMember.orElseThrow());
+        return ResponseEntity.ok().body(loggedInMember.orElse(null));
     }
 
     @PostMapping("/signup")
