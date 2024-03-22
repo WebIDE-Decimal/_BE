@@ -23,21 +23,16 @@ public class MailController {
     @PostMapping("/send")
     public ResponseEntity<String> sendVerificationEmail(@Valid @RequestBody VerificationEmailRequest verificationEmailRequest, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            // Validation 에러가 있을 경우 처리
-            StringBuilder errors = new StringBuilder();
-            bindingResult.getAllErrors().forEach((error) -> {
-                String errorMessage = error.getDefaultMessage();
-                errors.append(errorMessage).append("\n");
-            });
-            return ResponseEntity.badRequest().body(errors.toString());
+            return handleValidationErrors(bindingResult);
         }
 
-        if(memberService.existsByEmail(verificationEmailRequest.getEmail())){
-            return ResponseEntity.badRequest().body("이미 가입된 이메일 주소입니다.");
+        String errorMessage = validateVerificationEmailRequest(verificationEmailRequest);
+        if (errorMessage != null) {
+            return ResponseEntity.badRequest().body(errorMessage);
         }
 
         try {
-            mailService.sendMail(verificationEmailRequest.getEmail(), verificationEmailRequest.getResend());
+            mailService.sendMail(verificationEmailRequest);
             return ResponseEntity.ok("인증 메일 전송 완료");
         } catch (Exception e) {
             log.error("Failed to send verification email", e);
@@ -45,11 +40,33 @@ public class MailController {
         }
     }
 
+    private ResponseEntity<String> handleValidationErrors(BindingResult bindingResult) {
+        StringBuilder errors = new StringBuilder();
+        bindingResult.getAllErrors().forEach((error) -> {
+            String errorMessage = error.getDefaultMessage();
+            errors.append(errorMessage).append("\n");
+        });
+        return ResponseEntity.badRequest().body(errors.toString());
+    }
+
+    private String validateVerificationEmailRequest(VerificationEmailRequest verificationEmailRequest) {
+        if (verificationEmailRequest.getType().equals("email")) {
+            if (memberService.existsByEmail(verificationEmailRequest.getEmail())) {
+                return "이미 가입된 이메일 주소입니다.";
+            }
+        } else if (verificationEmailRequest.getType().equals("password")) {
+            if (!memberService.existsByEmail(verificationEmailRequest.getEmail())) {
+                return "사용자를 찾을 수 없습니다.";
+            }
+        }
+        return null;
+    }
+
     @GetMapping("/valid")
-    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token, @RequestParam("type") String type) {
         Boolean isValid = mailService.verifyEmail(token);
         if (isValid) {
-            return ResponseEntity.ok("이메일 인증 완료");
+            return ResponseEntity.ok("이메일 인증 완료 - " + type);
         } else {
             return ResponseEntity.badRequest().body("메일 인증 토큰이 유효하지 않습니다.");
         }

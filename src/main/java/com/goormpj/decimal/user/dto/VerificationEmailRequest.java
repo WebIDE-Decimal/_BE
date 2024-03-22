@@ -20,4 +20,6 @@ public class VerificationEmailRequest {
     @Builder.Default
     private Boolean resend = false;
 
+    private String type;
+
 }

@@ -1,6 +1,7 @@
 package com.goormpj.decimal.user.service;
 
 import com.goormpj.decimal.user.domain.MailToken;
+import com.goormpj.decimal.user.dto.VerificationEmailRequest;
 import com.goormpj.decimal.user.repository.MailTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,40 +28,47 @@ public class MailService {
     @Value("${spring.verificationUrl}")
     private String verificationUrl;
 
-    public void sendMail(String email, Boolean resend) throws IOException {
-        MailToken mailToken = generateMailToken(email);
-        String link = generateVerificationMailLink(mailToken.getToken());
-        String htmlContent = readHtmlContent("verification-email.html");
+    public void sendMail(VerificationEmailRequest verificationEmailRequest) throws IOException {
+        MailToken mailToken = generateMailToken(verificationEmailRequest.getEmail());
+        String link = generateVerificationMailLink(mailToken.getToken(), verificationEmailRequest.getType());
+
+        String htmlFileName, subject;
+        if(verificationEmailRequest.getType().equals("email")){
+            htmlFileName = "verification-email.html";
+            subject = "[COSMO'S] 가입 인증 메일입니다.";
+        }else{
+            htmlFileName = "verification-email-forpass.html";
+            subject = "[COSMO'S] 비밀번호 재설정 인증 메일입니다.";
+        }
+        String htmlContent = readHtmlContent(htmlFileName);
         htmlContent = htmlContent.replace("{{verificationLink}}", link);
 
         String finalHtmlContent = htmlContent;
         MimeMessagePreparator preparator = mimeMessage -> {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-            helper.setTo(email);
-            helper.setSubject("[COSMO'S] 가입 인증 메일입니다.");
+            helper.setTo(verificationEmailRequest.getEmail());
+            helper.setSubject(subject);
 
             helper.setText(finalHtmlContent, true);
         };
 
         javaMailSender.send(preparator);
 
-        MailToken token = mailTokenRepository.findByEmail(email);
-        if(resend || token != null){
+        MailToken token = mailTokenRepository.findByEmail(verificationEmailRequest.getEmail());
+        if(verificationEmailRequest.getResend() || token != null){
             mailTokenRepository.delete(token);
         }
 
         mailTokenRepository.save(mailToken);
-
-
     }
 
     public MailToken generateMailToken(String userEmail) {
         return MailToken.createMailToken(userEmail);
     }
 
-    public String generateVerificationMailLink(String token) {
+    public String generateVerificationMailLink(String token, String type) {
         // 생성된 토큰을 이용하여 인증 링크 생성
-        String verificationLink = verificationUrl + "/api/verify-email/valid?token=" + token;
+        String verificationLink = verificationUrl + "/api/verify-email/valid?token=" + token + "&type=" + type;
         return verificationLink;
     }
 
@@ -88,4 +95,6 @@ public class MailService {
         return true;
 
     }
+
+
 }
