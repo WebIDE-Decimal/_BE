@@ -5,9 +5,11 @@ import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.service.RecruitPostService;
 import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.entity.RecruitPost;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,9 +43,13 @@ public class RecruitPostController {
 
     // 새 모집 게시글 생성
     @PostMapping
-    public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO) {
-        RecruitPost savedPost = recruitPostService.createRecruitPost(RecruitPostMapper.requestDtoToEntity(requestDTO));
+    public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO,
+                                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String username = customUserDetails.getUsername();
+        RecruitPost recruitPost = RecruitPostMapper.requestDtoToEntity(requestDTO);
+        RecruitPost savedPost = recruitPostService.createRecruitPost(recruitPost, username);
         RecruitPostResponseDTO responseDTO = RecruitPostMapper.entityToResponseDto(savedPost);
+
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 

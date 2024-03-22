@@ -19,7 +19,6 @@ public class RecruitPost {
     private Long id; // 게시글 ID
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
     private Member writer; // 작성자 ID
 
     private String title; // 제목
