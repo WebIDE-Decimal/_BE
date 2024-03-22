@@ -1,13 +1,15 @@
 package com.goormpj.decimal.board.service;
 
-import com.goormpj.decimal.board.entity.RecruitInfo;
-import com.goormpj.decimal.board.entity.RecruitPost;
+import com.goormpj.decimal.board.dto.RecruitInfoDTO;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
 
 import java.util.List;
 
 public interface RecruitInfoService {
-    List<RecruitInfo> findAll();
-    RecruitInfo findById(Long id);
-    RecruitInfo save(RecruitInfo recruitInfo);
-    void softDelete(Long id);           // soft delete
+    RecruitInfoDTO createRecruitInfo(RecruitInfoDTO recruitInfoDTO, Long parentPostId, CustomUserDetails customUserDetails);
+    List<RecruitInfoDTO> getRecruitInfosByParentPostId(Long parentPostId);
+    List<RecruitInfoDTO> getMyRecruitInfos(CustomUserDetails customUserDetails);
+    void deleteRecruitInfo(Long id);
+    RecruitInfoDTO updateRecruitInfo(Long id, RecruitInfoDTO recruitInfoDTO);
+    void respondToRecruit(Long id, boolean accept);
 }
