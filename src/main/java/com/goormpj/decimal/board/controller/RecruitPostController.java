@@ -6,6 +6,7 @@ import com.goormpj.decimal.board.service.RecruitPostService;
 import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
+import com.goormpj.decimal.user.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
