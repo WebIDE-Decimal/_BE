@@ -2,29 +2,26 @@ package com.goormpj.decimal.board.mapper;
 
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
 import com.goormpj.decimal.board.entity.RecruitInfo;
-import com.goormpj.decimal.board.entity.RecruitPost;
 
 public class RecruitInfoMapper {
 
-    //Recruitinfo -> RecruitinfoDTO
-    public static RecruitInfoDTO entityToDto(RecruitInfo recruitInfo) {
-        RecruitInfoDTO dto = new RecruitInfoDTO();
-        dto.setDetail(recruitInfo.getDetail());
-        dto.setUpdatedAt(recruitInfo.getUpdatedAt());
-        if (recruitInfo.getRecruitPost() !=null) {
-            dto.setRecruitPostId(recruitInfo.getRecruitPost().getId());
+    public static RecruitInfoDTO toDto(RecruitInfo recruitInfo) {
+        if (recruitInfo == null) {
+            return null;
         }
-        dto.setIsDeleted(recruitInfo.getIsDeleted());
+
+        RecruitInfoDTO dto = new RecruitInfoDTO();
+        dto.setMotivation(recruitInfo.getMotivation());
         return dto;
     }
 
-    //RecruitInfoDTO -> RecruitInfo
-    public static RecruitInfo dtoToEntity(RecruitInfoDTO dto) {
-        RecruitInfo recruitInfo = new RecruitInfo();
-        recruitInfo.setDetail(dto.getDetail());
-        recruitInfo.setUpdatedAt(dto.getUpdatedAt());
+    public static RecruitInfo toEntity(RecruitInfoDTO dto) {
+        if (dto == null) {
+            return null;
+        }
 
-        recruitInfo.setIsDeleted(dto.getIsDeleted());
+        RecruitInfo recruitInfo = new RecruitInfo();
+        recruitInfo.setMotivation(dto.getMotivation());
         return recruitInfo;
     }
 }

@@ -85,10 +85,10 @@ public class VideoChatController {
     }
 
     // 사용자가 연결된 모든 세션 가져오기
-    @GetMapping("/{userId}/sessions")
-    public ResponseEntity<List<String>> getUserSessions(@PathVariable String userId) {
+    @GetMapping("/mysessions")
+    public ResponseEntity<List<String>> getUserSessions(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long memberId = Long.parseLong(customUserDetails.getUsername());
         try {
-            Long memberId = Long.parseLong(userId);
             List<String> sessions = videoChatService.getUserSessionsId(memberId);
             if (sessions.isEmpty()) {
                 return ResponseEntity.noContent().build();

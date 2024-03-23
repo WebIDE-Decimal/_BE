@@ -2,45 +2,76 @@ package com.goormpj.decimal.board.service;
 
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.board.repository.RecruitPostRepository;
+import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.repository.MemberRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class RecruitPostServiceImpl implements RecruitPostService {
-
     private final RecruitPostRepository recruitPostRepository;
+    private final MemberRepository memberRepository;
 
     @Autowired
-    public RecruitPostServiceImpl(RecruitPostRepository recruitPostRepository) {
+    public RecruitPostServiceImpl(RecruitPostRepository recruitPostRepository,
+                                  MemberRepository memberRepository) {
         this.recruitPostRepository = recruitPostRepository;
+        this.memberRepository = memberRepository;
     }
 
-    // 모든 모집 게시글 조회
+
     @Override
     public List<RecruitPost> findAllNotDeleted() {
         return recruitPostRepository.findByIsDeletedFalse();
     }
 
-    // ID로 모집 게시글 조회
     @Override
-    public Optional<RecruitPost> findByIdNotDeleted(Long id) {
-        return recruitPostRepository.findByIdAndIsDeletedFalse(id);
+    public RecruitPost findByIdNotDeleted(Long id) {
+        return recruitPostRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new IllegalArgumentException("No such post found"));
     }
 
-    // 모집 게시글 저장
     @Override
-    public RecruitPost save(RecruitPost recruitPost) {
+    public RecruitPost createRecruitPost(RecruitPost recruitPost, String writerUsername) {
+        Member writer = memberRepository.findById(Long.valueOf(writerUsername))
+                .orElseThrow(() -> new IllegalArgumentException("Member not found with username: " + writerUsername));
+        recruitPost.setState(true);
+        recruitPost.setWriter(writer);
+        return recruitPostRepository.save(recruitPost);
+    }
+    @Override
+    public RecruitPost updateRecruitPost(Long id, RecruitPost updateDetails) {
+        RecruitPost recruitPost = recruitPostRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new IllegalArgumentException("No such post found"));
+
+        recruitPost.setTitle(updateDetails.getTitle());
+        recruitPost.setContent(updateDetails.getContent());
+        recruitPost.setRecruited(updateDetails.getRecruited());
+        recruitPost.setState(updateDetails.getState());
+        recruitPost.setTarget(updateDetails.getTarget());
+
         return recruitPostRepository.save(recruitPost);
     }
 
-    // 모집 게시글 삭제
+
     @Override
     public void softDelete(Long id) {
-        recruitPostRepository.findById(id).ifPresent(post -> {
-            post.setIsDeleted(true);
-            recruitPostRepository.save(post);       // 변경 저장
-        });
+        RecruitPost recruitPost = recruitPostRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with Id: " + id));
+        recruitPost.setIsDeleted(true);
+        recruitPostRepository.save(recruitPost);
+    }
+
+    //모집 상태 업데이트 메소드
+
+    @Override
+    public void updateRecruitmentState(Long postId, Boolean newState) {
+        RecruitPost post = recruitPostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with Id: " + postId));
+        post.setState(newState);
+        recruitPostRepository.save(post);
     }
 }
