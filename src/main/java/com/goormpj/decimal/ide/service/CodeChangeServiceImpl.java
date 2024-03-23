@@ -18,7 +18,7 @@ public class CodeChangeServiceImpl implements CodeChangeService {
     @Override
     public CodeChangeDto processChange(CodeChangeDto dto) {
         // 가장 최근의 변경사항을 DB에서 가져와 비교
-        Optional<CodeChangeModel> lastChange = codeChangeRepository.findTopByDocumentIdOrderByTimestampDesc(dto.getFileId());
+        Optional<CodeChangeModel> lastChange = codeChangeRepository.findTopByFileIdOrderByTimestampDesc(dto.getFileId());
         CodeChangeModel newChange = CodeChangeMapper.dtoToEntity(dto);
 
         if (!lastChange.isPresent() || newChange.getTimestamp() > lastChange.get().getTimestamp()) {

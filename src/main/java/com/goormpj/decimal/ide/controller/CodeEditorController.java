@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/app")
+@RequestMapping("/api")
 public class CodeEditorController {
 
     private final CodeChangeService codeChangeService;
