@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,12 +63,23 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
     @Override
     @Transactional(readOnly = true)
     public List<RecruitInfoDTO> getRecruitInfosByParentPostId(Long parentPostId) {
+
         List<RecruitInfo> recruitInfos = recruitInfoRepository.findByRecruitPostIdAndIsDeletedFalse(parentPostId);
 
         return recruitInfos.stream()
-                .map(RecruitInfoMapper::toDto)
+                .map(recruitInfo -> {
+                    RecruitInfoDTO dto = RecruitInfoMapper.toDto(recruitInfo);
+                    String userNickname = recruitInfo.getMember().getNickname();
+                    LocalDateTime createdAt = recruitInfo.getCreatedAt();
+                    State state = recruitInfo.getState();
+                    dto.setUserNickname(userNickname);
+                    dto.setCreatedAt(createdAt);
+                    dto.setState(state);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
+
 
     // 특정 유저가 작성한 모든 모집 게시글 불러오기
     @Override
