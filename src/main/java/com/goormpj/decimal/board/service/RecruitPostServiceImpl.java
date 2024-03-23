@@ -38,6 +38,7 @@ public class RecruitPostServiceImpl implements RecruitPostService {
     public RecruitPost createRecruitPost(RecruitPost recruitPost, String writerUsername) {
         Member writer = memberRepository.findById(Long.valueOf(writerUsername))
                 .orElseThrow(() -> new IllegalArgumentException("Member not found with username: " + writerUsername));
+        recruitPost.setState(true);
         recruitPost.setWriter(writer);
         return recruitPostRepository.save(recruitPost);
     }
