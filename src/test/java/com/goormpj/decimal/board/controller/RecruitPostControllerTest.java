@@ -4,7 +4,10 @@ import com.goormpj.decimal.board.dto.RecruitPostRequestDTO;
 import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.board.service.RecruitPostService;
-import com.goormpj.decimal.user.service.MemberService;
+import com.goormpj.decimal.user.domain.Authority;
+import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,8 @@ import java.time.LocalDateTime;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -34,10 +39,18 @@ public class RecruitPostControllerTest {
     @MockBean
     private RecruitPostService recruitPostService;
 
-    @MockBean
-    private MemberService memberService;
-
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    private RecruitPost post;
+
+    @BeforeEach
+    public void setUp() {
+        Member writer = new Member(1L, "test@example.com", "tester", "securepassword", "profile.png", "/path/to/profile", Authority.ROLE_USER);
+        RecruitPost post = new RecruitPost("Sample Post", "Sample content", writer, false, 3, true, "Everyone");
+
+        // createRecruitPost 메서드 모킹을 수정하여, anyString()을 사용
+        when(recruitPostService.createRecruitPost(any(RecruitPost.class), anyString())).thenReturn(post);
+    }
 
     @Test
     @WithMockUser

@@ -5,12 +5,11 @@ import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.service.RecruitPostService;
 import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.entity.RecruitPost;
-import com.goormpj.decimal.user.domain.Member;
-import com.goormpj.decimal.user.service.MemberService;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication; // 추가
 
@@ -47,19 +46,13 @@ public class RecruitPostController {
 
     // 새 모집 게시글 생성
     @PostMapping
-    public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
-        Member writer = memberService.findByEmail(userEmail);
-
-        //state 상태 및 writer 설정
+    public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO,
+                                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String username = customUserDetails.getUsername();
         RecruitPost recruitPost = RecruitPostMapper.requestDtoToEntity(requestDTO);
-        recruitPost.setWriter(writer);
-        recruitPost.setState(false);    // state 초기값
-        RecruitPost savedPost = recruitPostService.createRecruitPost(recruitPost);
-
+        RecruitPost savedPost = recruitPostService.createRecruitPost(recruitPost, username);
         RecruitPostResponseDTO responseDTO = RecruitPostMapper.entityToResponseDto(savedPost);
+
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.goormpj'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.2-SNAPSHOT'
 
 java {
 	sourceCompatibility = '17'
@@ -31,22 +31,22 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
-
+	implementation 'io.openvidu:openvidu-java-client:2.29.0'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	// MySQL JDBC Driver 추가
 	implementation 'mysql:mysql-connector-java:8.0.23' // 사용하는 MySQL 버전에 맞게 버전을 조정
-
 	// JUnit Jupiter
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-
 	testImplementation 'com.h2database:h2'
-
+	implementation 'mysql:mysql-connector-java:8.0.23'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+	implementation 'org.modelmapper:modelmapper:2.3.8'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
-
-
 
 // JUnit 5를 사용하기 위한 설정
 test {

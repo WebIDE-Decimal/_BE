@@ -35,12 +35,12 @@ public class RecruitPostServiceImpl implements RecruitPostService {
     }
 
     @Override
-    public RecruitPost createRecruitPost(RecruitPost recruitPost) {
-        Member writer = memberRepository.findById(recruitPost.getWriter().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Writer not found with Id: " + recruitPost.getWriter().getId()));
+    public RecruitPost createRecruitPost(RecruitPost recruitPost, String writerUsername) {
+        Member writer = memberRepository.findById(Long.valueOf(writerUsername))
+                .orElseThrow(() -> new IllegalArgumentException("Member not found with username: " + writerUsername));
+        recruitPost.setWriter(writer);
         return recruitPostRepository.save(recruitPost);
     }
-
     @Override
     public RecruitPost updateRecruitPost(Long id, RecruitPost updateDetails) {
         RecruitPost recruitPost = recruitPostRepository.findByIdAndIsDeletedFalse(id)
