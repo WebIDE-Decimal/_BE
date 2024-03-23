@@ -20,7 +20,6 @@ public class RecruitPostMapper {
         RecruitPostResponseDTO dto = new RecruitPostResponseDTO();
         dto.setId(recruitPost.getId());
         dto.setTitle((recruitPost.getTitle()));
-        dto.setTitle(recruitPost.getTitle());
         dto.setContent(recruitPost.getContent());
         dto.setRecruited(recruitPost.getRecruited());
         dto.setState(recruitPost.getState());

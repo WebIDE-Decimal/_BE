@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication; // 추가
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.goormpj.decimal.user.service.MemberService;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
