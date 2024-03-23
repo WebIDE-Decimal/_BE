@@ -20,5 +20,4 @@ public class RecruitPostResponseDTO {
     private Boolean isDeleted;              // 삭제 여부
 
 
-
 }

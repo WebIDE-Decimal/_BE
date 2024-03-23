@@ -12,7 +12,6 @@ import java.util.List;
 
 @Service
 public class RecruitPostServiceImpl implements RecruitPostService {
-
     private final RecruitPostRepository recruitPostRepository;
     private final MemberRepository memberRepository;
 
@@ -63,5 +62,15 @@ public class RecruitPostServiceImpl implements RecruitPostService {
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with Id: " + id));
         recruitPost.setIsDeleted(true);
         recruitPostRepository.save(recruitPost);
+    }
+
+    //모집 상태 업데이트 메소드
+
+    @Override
+    public void updateRecruitmentState(Long postId, Boolean newState) {
+        RecruitPost post = recruitPostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with Id: " + postId));
+        post.setState(newState);
+        recruitPostRepository.save(post);
     }
 }

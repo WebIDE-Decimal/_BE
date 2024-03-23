@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication; // 추가
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,10 +20,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/recruit")
 public class RecruitPostController {
     private final RecruitPostService recruitPostService;
+    private final MemberService memberService;
 
     @Autowired
-    public RecruitPostController(RecruitPostService recruitPostService) {
+    public RecruitPostController(RecruitPostService recruitPostService, MemberService memberService) {
         this.recruitPostService = recruitPostService;
+        this.memberService = memberService;
     }
 
     // 모든 모집 게시글 조회
@@ -70,5 +73,10 @@ public class RecruitPostController {
             return ResponseEntity.noContent().build(); // 게시글 삭제후 응답
     }
 
+    @PatchMapping("/{id}/state")
+    public ResponseEntity<Void> updatePostState(@PathVariable Long id, @RequestParam Boolean newState) {
+        recruitPostService.updateRecruitmentState(id, newState);
+        return ResponseEntity.ok().build();
+    }
 
 }
