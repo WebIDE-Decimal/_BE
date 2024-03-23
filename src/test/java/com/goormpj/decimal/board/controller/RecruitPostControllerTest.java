@@ -58,7 +58,7 @@ public class RecruitPostControllerTest {
         RecruitPostRequestDTO requestDTO = new RecruitPostRequestDTO("Test Title", "Test Content", 3, "Target");
         RecruitPostResponseDTO responseDTO = new RecruitPostResponseDTO(1L, "Test Title", "Test Content", 3, false, "Target", LocalDateTime.now(), LocalDateTime.now(), false);
 
-        given(recruitPostService.createRecruitPost(any(RecruitPost.class))).willReturn(new RecruitPost());
+        given(recruitPostService.createRecruitPost(any(RecruitPost.class), anyString())).willReturn(new RecruitPost());
 
         mockMvc.perform(post("/api/recruit")
                         .contentType(MediaType.APPLICATION_JSON)
