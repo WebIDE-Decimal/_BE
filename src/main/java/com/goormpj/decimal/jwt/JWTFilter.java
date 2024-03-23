@@ -57,9 +57,10 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String memberId = jwtProvider.getMemberId(accessToken);
         Member member = new Member(Long.parseLong(memberId));
+        log.info("JWTFilter class - member.getId() {}", member.getId());
 
         CustomUserDetails customUserDetails = new CustomUserDetails(member);
-        log.info("doFilterInternal - customUserDetails {}", customUserDetails);
+        log.info("JWTFilter class - customUserDetails.getUsername() {}", customUserDetails.getUsername());
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
