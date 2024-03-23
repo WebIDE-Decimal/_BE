@@ -39,7 +39,15 @@ public class RecruitPostController {
 
     @GetMapping("/{id}")        // ID로 특정 모집 게시글 조회
     public ResponseEntity<RecruitPostResponseDTO> getRecruitPostById(@PathVariable Long id) {
-        RecruitPostResponseDTO dto = RecruitPostMapper.entityToResponseDto(recruitPostService.findByIdNotDeleted(id));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
+        RecruitPostResponseDTO dto = RecruitPostMapper.entityToResponseDto(recruitPost);
+
+        boolean isWriter = recruitPost.getWriter().getEmail().equals(userEmail);
+        dto.setIsWriter(isWriter);
+
         return ResponseEntity.ok(dto);
     }
 
@@ -61,6 +69,14 @@ public class RecruitPostController {
     @PutMapping("/{id}")
     public ResponseEntity<RecruitPostResponseDTO> updateRecruitPost(@PathVariable Long id,
                                                                     @RequestBody RecruitPostRequestDTO requestDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
+        if (!recruitPost.getWriter().getEmail().equals(userEmail)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
         RecruitPost updatedPost = recruitPostService.updateRecruitPost(id, RecruitPostMapper.requestDtoToEntity(requestDTO));
         RecruitPostResponseDTO responseDTO = RecruitPostMapper.entityToResponseDto(updatedPost);
         return ResponseEntity.ok(responseDTO);
@@ -69,6 +85,13 @@ public class RecruitPostController {
     // 특정 모집 게시글 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecruitPost(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
+        if (!recruitPost.getWriter().getEmail().equals(userEmail)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
             recruitPostService.softDelete(id);
             return ResponseEntity.noContent().build(); // 게시글 삭제후 응답
     }
