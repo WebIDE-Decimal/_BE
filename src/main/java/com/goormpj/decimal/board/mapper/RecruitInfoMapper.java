@@ -2,6 +2,7 @@ package com.goormpj.decimal.board.mapper;
 
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
 import com.goormpj.decimal.board.entity.RecruitInfo;
+import com.goormpj.decimal.user.domain.Member;
 
 public class RecruitInfoMapper {
 
