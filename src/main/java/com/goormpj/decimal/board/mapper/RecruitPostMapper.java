@@ -17,16 +17,19 @@ public class RecruitPostMapper {
     }
 
     public static RecruitPostResponseDTO entityToResponseDto(RecruitPost recruitPost) {
-        return new RecruitPostResponseDTO(
-                recruitPost.getId(),
-                recruitPost.getTitle(),
-                recruitPost.getContent(),
-                recruitPost.getRecruited(),
-                recruitPost.getState(),
-                recruitPost.getTarget(),
-                recruitPost.getCreatedAt(),
-                recruitPost.getUpdatedAt(),
-                recruitPost.getIsDeleted()
-        );
+        RecruitPostResponseDTO dto = new RecruitPostResponseDTO();
+        dto.setId(recruitPost.getId());
+        dto.setTitle((recruitPost.getTitle()));
+        dto.setContent(recruitPost.getContent());
+        dto.setRecruited(recruitPost.getRecruited());
+        dto.setState(recruitPost.getState());
+        dto.setTarget(recruitPost.getTarget());
+        dto.setCreatedAt(recruitPost.getCreatedAt());
+        dto.setUpdatedAt(recruitPost.getUpdatedAt());
+        dto.setIsDeleted(recruitPost.getIsDeleted());
+
+        return dto;
+
+
     }
 }
