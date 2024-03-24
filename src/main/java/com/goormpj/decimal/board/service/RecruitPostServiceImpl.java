@@ -58,6 +58,15 @@ public class RecruitPostServiceImpl implements RecruitPostService {
             boolean isWriter = writerId.equals(loginUserId);
 
             RecruitPostResponseDTO responseDTO = new RecruitPostResponseDTO();
+            responseDTO.setId(recruitPost.getId());
+            responseDTO.setTitle(recruitPost.getTitle());
+            responseDTO.setContent(recruitPost.getContent());
+            responseDTO.setRecruited(recruitPost.getRecruited());
+            responseDTO.setState(recruitPost.getState());
+            responseDTO.setTarget(recruitPost.getTarget());
+            responseDTO.setCreatedAt(recruitPost.getCreatedAt());
+            responseDTO.setUpdatedAt(recruitPost.getUpdatedAt());
+            responseDTO.setIsDeleted(recruitPost.getIsDeleted());
             responseDTO.setIsWriter(isWriter);
 
             responseDTOs.add(responseDTO);
