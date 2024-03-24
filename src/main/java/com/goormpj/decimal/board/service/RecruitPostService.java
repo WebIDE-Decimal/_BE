@@ -12,4 +12,12 @@ public interface RecruitPostService {
     void softDelete(Long id);
     void updateRecruitmentState(Long postId, Boolean newState); // 메서드 추가
 
+    //현재 모집 인원수 증가
+    void incrementCurrentRecruited(Long postId);
+
+    // RecruitPostService.java
+    void applyToRecruitPost(Long postId, CustomUserDetails userDetails);
+
+
+
 }

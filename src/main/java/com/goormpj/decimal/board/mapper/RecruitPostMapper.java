@@ -27,7 +27,10 @@ public class RecruitPostMapper {
         dto.setCreatedAt(recruitPost.getCreatedAt());
         dto.setUpdatedAt(recruitPost.getUpdatedAt());
         dto.setIsDeleted(recruitPost.getIsDeleted());
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         return dto;
 
 

@@ -13,7 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication; // 추가
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.goormpj.decimal.user.service.MemberService;
 
 
 import java.util.List;
@@ -41,14 +40,13 @@ public class RecruitPostController {
     }
 
     @GetMapping("/{id}")        // ID로 특정 모집 게시글 조회
-    public ResponseEntity<RecruitPostResponseDTO> getRecruitPostById(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+    public ResponseEntity<RecruitPostResponseDTO> getRecruitPostById
+            (@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
         RecruitPostResponseDTO dto = RecruitPostMapper.entityToResponseDto(recruitPost);
 
-        boolean isWriter = recruitPost.getWriter().getEmail().equals(userEmail);
+        boolean isWriter = recruitPost.getWriter().getId().equals(Long.parseLong(customUserDetails.getUsername()));
         dto.setIsWriter(isWriter);
 
         return ResponseEntity.ok(dto);
@@ -70,13 +68,13 @@ public class RecruitPostController {
 
     // 특정 모집 게시글을 업데이트하는 메서드
     @PutMapping("/{id}")
-    public ResponseEntity<RecruitPostResponseDTO> updateRecruitPost(@PathVariable Long id,
-                                                                    @RequestBody RecruitPostRequestDTO requestDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+    public ResponseEntity<RecruitPostResponseDTO> updateRecruitPost
+        (@PathVariable Long id,
+         @RequestBody RecruitPostRequestDTO requestDTO,
+         @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
-        if (!recruitPost.getWriter().getEmail().equals(userEmail)) {
+        if (!recruitPost.getWriter().getId().equals(Long.parseLong(userDetails.getUsername()))) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -87,12 +85,11 @@ public class RecruitPostController {
 
     // 특정 모집 게시글 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRecruitPost(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+    public ResponseEntity<Void> deleteRecruitPost
+    (@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
-        if (!recruitPost.getWriter().getEmail().equals(userEmail)) {
+        if (!recruitPost.getWriter().getId().equals(Long.parseLong(userDetails.getUsername()))) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
             recruitPostService.softDelete(id);
@@ -104,5 +101,12 @@ public class RecruitPostController {
         recruitPostService.updateRecruitmentState(id, newState);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{postId}/apply")
+    public ResponseEntity<Void> applyToPost(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        recruitPostService.applyToRecruitPost(postId, userDetails);
+        return ResponseEntity.ok().build();
+    }
+
 
 }

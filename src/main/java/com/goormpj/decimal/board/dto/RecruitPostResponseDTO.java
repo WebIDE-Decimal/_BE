@@ -18,7 +18,6 @@ public class RecruitPostResponseDTO {
     private LocalDateTime createdAt;        // 생성 시각
     private LocalDateTime updatedAt;        // 업데이트 시각
     private Boolean isDeleted;              // 삭제 여부
-    private Boolean isWriter; // 작성자 여부를 나타내는 필드 추가
-
+    private Boolean isWriter;
 
 }

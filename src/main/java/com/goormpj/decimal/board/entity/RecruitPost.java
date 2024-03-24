@@ -24,6 +24,8 @@ public class RecruitPost {
     private String title; // 제목
     private String content; // 내용
     private Integer recruited; // 모집 인원
+    private Integer currentRecruited = 0;       //현재 모집된 인원, 초기값 = 0 설정
+
     private Boolean state; // 모집 상태
     private String target; // 모집 대상
 
