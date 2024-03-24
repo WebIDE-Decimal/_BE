@@ -60,10 +60,14 @@ public class RecruitPostController {
     @PostMapping
     public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO,
                                                                     @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        String username = customUserDetails.getUsername();
+        Long userId = Long.valueOf(customUserDetails.getUsername());
         RecruitPost recruitPost = RecruitPostMapper.requestDtoToEntity(requestDTO);
-        RecruitPost savedPost = recruitPostService.createRecruitPost(recruitPost, username);
+        RecruitPost savedPost = recruitPostService.createRecruitPost(recruitPost, userId);
+        // 게시글 작성하는 사람은 항상 true니깐??
+        boolean isWriter = true;
+
         RecruitPostResponseDTO responseDTO = RecruitPostMapper.entityToResponseDto(savedPost);
+        responseDTO.setIsWriter(isWriter);
 
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }

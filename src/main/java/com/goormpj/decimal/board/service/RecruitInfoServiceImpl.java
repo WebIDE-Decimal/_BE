@@ -67,16 +67,7 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
         List<RecruitInfo> recruitInfos = recruitInfoRepository.findByRecruitPostIdAndIsDeletedFalse(parentPostId);
 
         return recruitInfos.stream()
-                .map(recruitInfo -> {
-                    RecruitInfoDTO dto = RecruitInfoMapper.toDto(recruitInfo);
-                    String userNickname = recruitInfo.getMember().getNickname();
-                    LocalDateTime createdAt = recruitInfo.getCreatedAt();
-                    State state = recruitInfo.getState();
-                    dto.setUserNickname(userNickname);
-                    dto.setCreatedAt(createdAt);
-                    dto.setState(state);
-                    return dto;
-                })
+                .map(RecruitInfoMapper::toDto)
                 .collect(Collectors.toList());
     }
 

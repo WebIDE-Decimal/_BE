@@ -13,6 +13,10 @@ public class RecruitInfoMapper {
 
         RecruitInfoDTO dto = new RecruitInfoDTO();
         dto.setMotivation(recruitInfo.getMotivation());
+        dto.setId(recruitInfo.getId());
+        dto.setUserNickname(recruitInfo.getMember().getNickname());
+        dto.setCreatedAt(recruitInfo.getCreatedAt());
+        dto.setState(recruitInfo.getState());
         return dto;
     }
 
@@ -23,6 +27,7 @@ public class RecruitInfoMapper {
 
         RecruitInfo recruitInfo = new RecruitInfo();
         recruitInfo.setMotivation(dto.getMotivation());
+        recruitInfo.setId(dto.getId());
         return recruitInfo;
     }
 }

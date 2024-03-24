@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class RecruitInfoDTO {
+    private Long id;
     private String motivation;
     private String userNickname;
     private State state;

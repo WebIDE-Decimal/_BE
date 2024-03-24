@@ -27,6 +27,7 @@ public class RecruitInfo {
     @JoinColumn(name = "writer_id")             //Member 참조를 위한 필드와 mapping
     private Member member;
 
+    @Column(columnDefinition = "LONGTEXT")
     private String motivation;                      //지원 동기
 
     @Enumerated(EnumType.STRING)
