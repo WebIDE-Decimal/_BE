@@ -50,7 +50,6 @@ public class RecruitPostServiceImpl implements RecruitPostService {
     @Override
     public List<RecruitPostResponseDTO> findByIdNotDeleted(Long id, CustomUserDetails customUserDetails) {
         return recruitPostRepository.findByIdAndIsDeletedFalse(id)
-                .filter(recruitPost -> recruitPost.getWriter().getId().equals(Long.valueOf(customUserDetails.getUsername())))
                 .map(recruitPost -> {
                     RecruitPostResponseDTO responseDTO = new RecruitPostResponseDTO();
                     responseDTO.setId(recruitPost.getId());
@@ -63,11 +62,14 @@ public class RecruitPostServiceImpl implements RecruitPostService {
                     responseDTO.setCreatedAt(recruitPost.getCreatedAt());
                     responseDTO.setUpdatedAt(recruitPost.getUpdatedAt());
                     responseDTO.setIsDeleted(recruitPost.getIsDeleted());
-                    responseDTO.setIsWriter(true); // 이미 필터링 되었으므로 항상 true
+
+                    boolean isWriter = recruitPost.getWriter().getId().equals(Long.valueOf(customUserDetails.getUsername()));
+                    responseDTO.setIsWriter(isWriter);
+
                     return responseDTO;
                 })
-                .stream() // Optional을 Stream으로 변환
-                .collect(Collectors.toList()); // Stream을 List로 변환
+                .stream()
+                .collect(Collectors.toList());
     }
 
 
