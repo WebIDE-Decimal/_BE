@@ -7,7 +7,7 @@ public interface RecruitPostService {
     List<RecruitPost> findAllNotDeleted();
 
     RecruitPost findByIdNotDeleted(Long id);
-    public RecruitPost createRecruitPost(RecruitPost recruitPost, String username);
+    public RecruitPost createRecruitPost(RecruitPost recruitPost, Long userId);
     RecruitPost updateRecruitPost(Long id, RecruitPost recruitPost);
     void softDelete(Long id);
     void updateRecruitmentState(Long postId, Boolean newState); // 메서드 추가
