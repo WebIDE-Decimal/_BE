@@ -126,7 +126,21 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
         RecruitInfo recruitInfo = recruitInfoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("RecruitInfo not found for id: " + id));
 
-        recruitInfo.setState(accept ? State.APPROVE : State.DISAPPROVE);
+        if (accept) {
+            recruitInfo.setState(State.APPROVE);
+
+            RecruitPost recruitPost = recruitInfo.getRecruitPost();
+            Integer currentApplied = recruitPost.getApplied();
+            if (currentApplied == null) {
+                currentApplied = 1;         // 팀장은 기본적으로 있으니 1로 초기화
+            }
+            recruitPost.setApplied(currentApplied + 1);
+
+        } else {
+            recruitInfo.setState(State.DISAPPROVE);
+        }
+
         recruitInfoRepository.save(recruitInfo);
     }
+
 }

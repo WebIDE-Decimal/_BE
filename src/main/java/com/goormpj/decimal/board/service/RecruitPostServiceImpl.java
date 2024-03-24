@@ -61,6 +61,7 @@ public class RecruitPostServiceImpl implements RecruitPostService {
             responseDTO.setId(recruitPost.getId());
             responseDTO.setTitle(recruitPost.getTitle());
             responseDTO.setContent(recruitPost.getContent());
+            responseDTO.setApplied(recruitPost.getApplied());
             responseDTO.setRecruited(recruitPost.getRecruited());
             responseDTO.setState(recruitPost.getState());
             responseDTO.setTarget(recruitPost.getTarget());
