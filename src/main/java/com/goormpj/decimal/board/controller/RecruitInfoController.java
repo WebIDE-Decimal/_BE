@@ -1,5 +1,6 @@
 package com.goormpj.decimal.board.controller;
 
+import com.goormpj.decimal.board.dto.RecruitApplicationDTO;
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
 import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.entity.RecruitInfo;
@@ -51,8 +52,8 @@ public class RecruitInfoController {
 
     // 특정 유저가 지원한 모든 모집 게시글 불러오기
     @GetMapping("/myApply")
-    public ResponseEntity<List<RecruitPostResponseDTO>> getMyRecruitPost(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        List<RecruitPostResponseDTO> myRecruitInfoDTOs = recruitInfoService.getMyRecruitPost(customUserDetails);
+    public ResponseEntity<List<RecruitApplicationDTO>> getMyRecruitPost(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        List<RecruitApplicationDTO> myRecruitInfoDTOs = recruitInfoService.getMyRecruitPost(customUserDetails);
         return ResponseEntity.ok(myRecruitInfoDTOs);
     }
 
