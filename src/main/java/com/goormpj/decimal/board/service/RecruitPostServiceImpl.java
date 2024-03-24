@@ -1,10 +1,14 @@
 package com.goormpj.decimal.board.service;
 
+import com.goormpj.decimal.board.dto.RecruitPostRequestDTO;
 import com.goormpj.decimal.board.entity.RecruitPost;
+import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.repository.RecruitPostRepository;
 import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.dto.CustomUserDetails;
 import com.goormpj.decimal.user.repository.MemberRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,13 +39,18 @@ public class RecruitPostServiceImpl implements RecruitPostService {
     }
 
     @Override
-    public RecruitPost createRecruitPost(RecruitPost recruitPost, Long userId) {
+    public RecruitPost createRecruitPost(RecruitPostRequestDTO requestDTO, CustomUserDetails customUserDetails) {
+        RecruitPost responsePost = RecruitPostMapper.requestDtoToEntity(requestDTO);
+        responsePost.setIsWriter(true);
+        Long userId = Long.valueOf(customUserDetails.getUsername());
+
         Member writer = memberRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found with userId: " + userId));
-        recruitPost.setState(true);
-        recruitPost.setWriter(writer);
-        return recruitPostRepository.save(recruitPost);
+                .orElseThrow(() -> new EntityNotFoundException("Member not found with id: " + userId));
+
+        responsePost.setWriter(writer);
+        return recruitPostRepository.save(responsePost);
     }
+
     @Override
     public RecruitPost updateRecruitPost(Long id, RecruitPost updateDetails) {
         RecruitPost recruitPost = recruitPostRepository.findByIdAndIsDeletedFalse(id)
