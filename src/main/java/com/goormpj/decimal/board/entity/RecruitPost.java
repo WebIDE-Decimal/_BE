@@ -29,7 +29,7 @@ public class RecruitPost {
     private Integer applied = 1; // 현재까지 지원한 인원
     private Integer recruited; // 총 모집 인원
 
-    private Boolean state; // 모집 상태
+    private Boolean state = true; // 모집 상태
     private String target; // 모집 대상
 
     @CreationTimestamp

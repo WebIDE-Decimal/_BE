@@ -35,9 +35,12 @@ public class RecruitPostServiceImpl implements RecruitPostService {
 
 
     @Override
-    public List<RecruitPost> findAllNotDeleted() {
-        return recruitPostRepository.findByIsDeletedFalse();
+    public List<RecruitPostResponseDTO> findAllNotDeleted() {
+        return recruitPostRepository.findByIsDeletedFalse().stream()
+                .map(RecruitPostMapper::entityToResponseDto)
+                .collect(Collectors.toList());
     }
+
     @Override
     public Optional<RecruitPost> findByIdNotDeleted(Long id) {
         return recruitPostRepository.findByIdAndIsDeletedFalse(id);
@@ -46,34 +49,27 @@ public class RecruitPostServiceImpl implements RecruitPostService {
     // ID로 특정 모집 게시글 조회
     @Override
     public List<RecruitPostResponseDTO> findByIdNotDeleted(Long id, CustomUserDetails customUserDetails) {
-        Optional<RecruitPost> selectedPost = recruitPostRepository.findByIdAndIsDeletedFalse(id);
-        Long loginUserId = Long.valueOf(customUserDetails.getUsername());
-
-        List<RecruitPostResponseDTO> responseDTOs = new ArrayList<>();
-
-        if (selectedPost.isPresent()) {
-            RecruitPost recruitPost = selectedPost.get();
-
-            Long writerId = recruitPost.getWriter().getId();
-            boolean isWriter = writerId.equals(loginUserId);
-
-            RecruitPostResponseDTO responseDTO = new RecruitPostResponseDTO();
-            responseDTO.setId(recruitPost.getId());
-            responseDTO.setTitle(recruitPost.getTitle());
-            responseDTO.setContent(recruitPost.getContent());
-            responseDTO.setApplied(recruitPost.getApplied());
-            responseDTO.setRecruited(recruitPost.getRecruited());
-            responseDTO.setState(recruitPost.getState());
-            responseDTO.setTarget(recruitPost.getTarget());
-            responseDTO.setCreatedAt(recruitPost.getCreatedAt());
-            responseDTO.setUpdatedAt(recruitPost.getUpdatedAt());
-            responseDTO.setIsDeleted(recruitPost.getIsDeleted());
-            responseDTO.setIsWriter(isWriter);
-
-            responseDTOs.add(responseDTO);
-        }
-        return responseDTOs;
+        return recruitPostRepository.findByIdAndIsDeletedFalse(id)
+                .filter(recruitPost -> recruitPost.getWriter().getId().equals(Long.valueOf(customUserDetails.getUsername())))
+                .map(recruitPost -> {
+                    RecruitPostResponseDTO responseDTO = new RecruitPostResponseDTO();
+                    responseDTO.setId(recruitPost.getId());
+                    responseDTO.setTitle(recruitPost.getTitle());
+                    responseDTO.setContent(recruitPost.getContent());
+                    responseDTO.setApplied(recruitPost.getApplied());
+                    responseDTO.setRecruited(recruitPost.getRecruited());
+                    responseDTO.setState(recruitPost.getState());
+                    responseDTO.setTarget(recruitPost.getTarget());
+                    responseDTO.setCreatedAt(recruitPost.getCreatedAt());
+                    responseDTO.setUpdatedAt(recruitPost.getUpdatedAt());
+                    responseDTO.setIsDeleted(recruitPost.getIsDeleted());
+                    responseDTO.setIsWriter(true); // 이미 필터링 되었으므로 항상 true
+                    return responseDTO;
+                })
+                .stream() // Optional을 Stream으로 변환
+                .collect(Collectors.toList()); // Stream을 List로 변환
     }
+
 
 
     // 새 모집 게시글 생성
@@ -121,7 +117,6 @@ public class RecruitPostServiceImpl implements RecruitPostService {
     }
 
     //모집 상태 업데이트 메소드
-
     @Override
     public void updateRecruitmentState(Long postId, Boolean newState) {
         RecruitPost post = recruitPostRepository.findById(postId)

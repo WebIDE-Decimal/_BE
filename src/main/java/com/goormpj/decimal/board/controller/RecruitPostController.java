@@ -38,11 +38,10 @@ public class RecruitPostController {
     // 모든 모집 게시글 조회
     @GetMapping
     public ResponseEntity<List<RecruitPostResponseDTO>> getAllRecruitPosts() {
-        List<RecruitPostResponseDTO> dtos = recruitPostService.findAllNotDeleted().stream()
-                .map(RecruitPostMapper::entityToResponseDto)
-                .collect(Collectors.toList());
+        List<RecruitPostResponseDTO> dtos = recruitPostService.findAllNotDeleted();
         return ResponseEntity.ok(dtos);
     }
+
 
     // ID로 특정 모집 게시글 조회
     @GetMapping("/{id}")
@@ -105,6 +104,8 @@ public class RecruitPostController {
         return ResponseEntity.noContent().build();
     }
 
+
+    // 모집 상태 변경
     @PatchMapping("/{id}/state")
     public ResponseEntity<Void> updatePostState(@PathVariable Long id, @RequestParam Boolean newState) {
         recruitPostService.updateRecruitmentState(id, newState);

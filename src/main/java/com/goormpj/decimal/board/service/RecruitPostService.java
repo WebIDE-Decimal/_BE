@@ -9,8 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RecruitPostService {
-    List<RecruitPost> findAllNotDeleted();
-
+    List<RecruitPostResponseDTO> findAllNotDeleted();
     List<RecruitPostResponseDTO> getMyRecruitPosts(CustomUserDetails customUserDetails);
     Optional<RecruitPost> findByIdNotDeleted(Long id);
 
