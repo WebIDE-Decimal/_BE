@@ -20,6 +20,7 @@ import com.goormpj.decimal.user.service.MemberService;
 
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,15 +44,13 @@ public class RecruitPostController {
         return ResponseEntity.ok(dtos);
     }
 
-    @GetMapping("/{id}")        // ID로 특정 모집 게시글 조회
-    public ResponseEntity<RecruitPostResponseDTO> getRecruitPostById(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+    // ID로 특정 모집 게시글 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<List<RecruitPostResponseDTO>> getRecruitPostById(@PathVariable Long id,
+                                                                           @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        List<RecruitPostResponseDTO> recruitPosts = recruitPostService.findByIdNotDeleted(id, customUserDetails);
 
-        RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
-        RecruitPostResponseDTO dto = RecruitPostMapper.entityToResponseDto(recruitPost);
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(recruitPosts);
     }
 
     // 로그인 한 사용자가 작성한 모든 모집 게시글 조회
@@ -80,8 +79,8 @@ public class RecruitPostController {
                                                                     @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Long userId = Long.valueOf(customUserDetails.getUsername());
 
-        RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
-        if (!recruitPost.getWriter().getId().equals(userId)) {
+        Optional<RecruitPost> recruitPostOpt = recruitPostService.findByIdNotDeleted(id);
+        if (recruitPostOpt.isEmpty() || !recruitPostOpt.get().getWriter().getId().equals(userId)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -90,18 +89,20 @@ public class RecruitPostController {
         return ResponseEntity.ok(responseDTO);
     }
 
+
     // 특정 모집 게시글 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecruitPost(@PathVariable Long id,
                                                   @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Long userId = Long.valueOf(customUserDetails.getUsername());
 
-        RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
-        if (!recruitPost.getWriter().getId().equals(userId)) {
+        Optional<RecruitPost> recruitPostOpt = recruitPostService.findByIdNotDeleted(id);
+        if (recruitPostOpt.isEmpty() || !recruitPostOpt.get().getWriter().getId().equals(userId)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-            recruitPostService.softDelete(id);
-            return ResponseEntity.noContent().build(); // 게시글 삭제후 응답
+
+        recruitPostService.softDelete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/state")

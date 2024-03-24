@@ -10,6 +10,5 @@ public interface RecruitPostRepository extends JpaRepository<RecruitPost, Long> 
         List<RecruitPost> findByIsDeletedFalse();   // 소프트 삭제되지 않는 모든 게시글 조회
         List<RecruitPost> findByWriterIdAndIsDeletedFalse(Long memberId);
 
-        Optional<RecruitPost> findByIdAndIsDeletedFalse(Long id);
-        // 특정 ID에 해당하며 소프트 삭제되지않는 게시글 조회
+        Optional<RecruitPost> findByIdAndIsDeletedFalse(Long id); // 수정됨
 }
