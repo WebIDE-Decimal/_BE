@@ -39,6 +39,7 @@ public class RecruitPost {
     private LocalDateTime updatedAt;
 
     private Boolean isDeleted = false; // 삭제 기본값을 false로 수정
+    private Boolean isWriter;
 
     // 생성자 추가
     public RecruitPost(String title, String content, Member writer, boolean isDeleted, Integer recruited,
