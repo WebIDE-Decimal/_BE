@@ -15,7 +15,6 @@ public interface RecruitPostService {
     //현재 모집 인원수 증가
     void incrementCurrentRecruited(Long postId);
 
-    // RecruitPostService.java
     void applyToRecruitPost(Long postId, CustomUserDetails userDetails);
 
 
