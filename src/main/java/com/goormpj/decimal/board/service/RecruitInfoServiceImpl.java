@@ -133,11 +133,16 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
 
             RecruitPost recruitPost = recruitInfo.getRecruitPost();
             Integer currentApplied = recruitPost.getApplied();
+
             if (currentApplied == null) {
                 currentApplied = 1;         // 팀장은 기본적으로 있으니 1로 초기화
             }
             recruitPost.setApplied(currentApplied + 1);
 
+            // 모집 인원이 꽉 찼는지 확인
+            if (recruitPost.getApplied().equals(recruitPost.getRecruited())) {
+                recruitPost.setState(false); // 모집 인원이 꽉 차면 state를 false로 설정
+            }
         } else {
             recruitInfo.setState(State.DISAPPROVE);
         }
