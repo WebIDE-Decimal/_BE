@@ -1,10 +1,12 @@
 package com.goormpj.decimal.board.service;
 
+import com.goormpj.decimal.board.dto.RecruitApplicationDTO;
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
 import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.entity.RecruitInfo;
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.board.entity.State;
+import com.goormpj.decimal.board.mapper.RecruitApplicationMapper;
 import com.goormpj.decimal.board.mapper.RecruitInfoMapper;
 import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.repository.RecruitInfoRepository;
@@ -74,7 +76,7 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
     }
 
 
-    // 특정 유저가 작성한 모든 지원 게시글 불러오기
+    // 로그인 한 유저가 작성한 모든 지원 게시글 불러오기
     @Override
     @Transactional(readOnly = true)
     public List<RecruitInfoDTO> getMyRecruitInfos(CustomUserDetails customUserDetails) {
@@ -89,14 +91,14 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
     // 특정 유저가 지원한 모든 모집 게시글 불러오기
     @Override
     @Transactional(readOnly = true)
-    public List<RecruitPostResponseDTO> getMyRecruitPost(CustomUserDetails customUserDetails) {
+    public List<RecruitApplicationDTO> getMyRecruitPost(CustomUserDetails customUserDetails) {
         Long userId = Long.valueOf(customUserDetails.getUsername());
-        List<RecruitPost> recruitInfos = recruitInfoRepository.findRecruitPostsByApplicantId(userId);
+        List<RecruitInfo> recruitInfos = recruitInfoRepository.findByMemberIdAndIsDeletedFalse(userId);
+        List<RecruitApplicationDTO> myPostDto = RecruitApplicationMapper.toDto(recruitInfos);
 
-        return recruitInfos.stream()
-                .map(RecruitPostMapper::entityToResponseDto)
-                .collect(Collectors.toList());
+        return myPostDto;
     }
+
 
     // 게시글 논리삭제
     @Override
