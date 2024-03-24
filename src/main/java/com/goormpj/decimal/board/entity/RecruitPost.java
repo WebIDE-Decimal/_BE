@@ -26,7 +26,9 @@ public class RecruitPost {
     @Column(columnDefinition = "LONGTEXT")
     private String content; // 내용
 
-    private Integer recruited; // 모집 인원
+    private Integer applied = 1; // 현재까지 지원한 인원
+    private Integer recruited; // 총 모집 인원
+
     private Boolean state; // 모집 상태
     private String target; // 모집 대상
 
@@ -38,7 +40,7 @@ public class RecruitPost {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    private Boolean isDeleted = false; // 삭제 기본값을 false로 수정
+    private Boolean isDeleted = false;
 
     // 생성자 추가
     public RecruitPost(String title, String content, Member writer, boolean isDeleted, Integer recruited,

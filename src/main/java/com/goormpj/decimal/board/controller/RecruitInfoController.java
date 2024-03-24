@@ -26,7 +26,7 @@ public class RecruitInfoController {
         this.recruitInfoService = recruitInfoService;
     }
 
-    // 모집 게시글 생성
+    // 지원 게시글 생성
     @PostMapping("/{parentPostId}")
     public ResponseEntity<RecruitInfoDTO> createRecruitInfo(@PathVariable("parentPostId") Long parentPostId,
                                                             @RequestBody RecruitInfoDTO recruitInfoDTO,
