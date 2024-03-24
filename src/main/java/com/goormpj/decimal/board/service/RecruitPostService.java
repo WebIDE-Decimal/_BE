@@ -6,13 +6,15 @@ import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RecruitPostService {
     List<RecruitPost> findAllNotDeleted();
 
     List<RecruitPostResponseDTO> getMyRecruitPosts(CustomUserDetails customUserDetails);
+    Optional<RecruitPost> findByIdNotDeleted(Long id);
 
-    RecruitPost findByIdNotDeleted(Long id);
+    List<RecruitPostResponseDTO> findByIdNotDeleted(Long id, CustomUserDetails customUserDetails);
     RecruitPost createRecruitPost(RecruitPostRequestDTO requestDTO, CustomUserDetails customUserDetails);
     RecruitPost updateRecruitPost(Long id, RecruitPost recruitPost);
     void softDelete(Long id);

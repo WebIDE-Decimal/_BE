@@ -16,7 +16,9 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,12 +38,33 @@ public class RecruitPostServiceImpl implements RecruitPostService {
     public List<RecruitPost> findAllNotDeleted() {
         return recruitPostRepository.findByIsDeletedFalse();
     }
-
     @Override
-    public RecruitPost findByIdNotDeleted(Long id) {
-        return recruitPostRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new IllegalArgumentException("No such post found"));
+    public Optional<RecruitPost> findByIdNotDeleted(Long id) {
+        return recruitPostRepository.findByIdAndIsDeletedFalse(id);
     }
+
+    // ID로 특정 모집 게시글 조회
+    @Override
+    public List<RecruitPostResponseDTO> findByIdNotDeleted(Long id, CustomUserDetails customUserDetails) {
+        Optional<RecruitPost> selectedPost = recruitPostRepository.findByIdAndIsDeletedFalse(id);
+        Long loginUserId = Long.valueOf(customUserDetails.getUsername());
+
+        List<RecruitPostResponseDTO> responseDTOs = new ArrayList<>();
+
+        if (selectedPost.isPresent()) {
+            RecruitPost recruitPost = selectedPost.get();
+
+            Long writerId = recruitPost.getWriter().getId();
+            boolean isWriter = writerId.equals(loginUserId);
+
+            RecruitPostResponseDTO responseDTO = new RecruitPostResponseDTO();
+            responseDTO.setIsWriter(isWriter);
+
+            responseDTOs.add(responseDTO);
+        }
+        return responseDTOs;
+    }
+
 
     // 새 모집 게시글 생성
     @Override
