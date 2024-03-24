@@ -1,5 +1,7 @@
 package com.goormpj.decimal.board.controller;
 
+import com.goormpj.decimal.board.dto.RecruitInfoDTO;
+import com.goormpj.decimal.board.dto.RecruitPostDTO;
 import com.goormpj.decimal.board.dto.RecruitPostRequestDTO;
 import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.service.RecruitPostService;
@@ -49,10 +51,14 @@ public class RecruitPostController {
         RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
         RecruitPostResponseDTO dto = RecruitPostMapper.entityToResponseDto(recruitPost);
 
-        boolean isWriter = recruitPost.getWriter().getEmail().equals(userEmail);
-        dto.setIsWriter(isWriter);
-
         return ResponseEntity.ok(dto);
+    }
+
+    // 로그인 한 사용자가 작성한 모든 모집 게시글 조회
+    @GetMapping("/myPost")
+    public ResponseEntity<List<RecruitPostResponseDTO>> getMyRecruitInfos(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        List<RecruitPostResponseDTO> myRecruitPostDTOs = recruitPostService.getMyRecruitPosts(customUserDetails);
+        return ResponseEntity.ok(myRecruitPostDTOs);
     }
 
 
@@ -70,12 +76,12 @@ public class RecruitPostController {
     // 특정 모집 게시글을 업데이트하는 메서드
     @PutMapping("/{id}")
     public ResponseEntity<RecruitPostResponseDTO> updateRecruitPost(@PathVariable Long id,
-                                                                    @RequestBody RecruitPostRequestDTO requestDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+                                                                    @RequestBody RecruitPostRequestDTO requestDTO,
+                                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long userId = Long.valueOf(customUserDetails.getUsername());
 
         RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
-        if (!recruitPost.getWriter().getEmail().equals(userEmail)) {
+        if (!recruitPost.getWriter().getId().equals(userId)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -86,12 +92,12 @@ public class RecruitPostController {
 
     // 특정 모집 게시글 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRecruitPost(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
+    public ResponseEntity<Void> deleteRecruitPost(@PathVariable Long id,
+                                                  @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long userId = Long.valueOf(customUserDetails.getUsername());
 
         RecruitPost recruitPost = recruitPostService.findByIdNotDeleted(id);
-        if (!recruitPost.getWriter().getEmail().equals(userEmail)) {
+        if (!recruitPost.getWriter().getId().equals(userId)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
             recruitPostService.softDelete(id);

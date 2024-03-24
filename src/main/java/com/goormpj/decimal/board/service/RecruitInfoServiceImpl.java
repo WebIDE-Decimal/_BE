@@ -1,10 +1,12 @@
 package com.goormpj.decimal.board.service;
 
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
+import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.entity.RecruitInfo;
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.board.entity.State;
 import com.goormpj.decimal.board.mapper.RecruitInfoMapper;
+import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.repository.RecruitInfoRepository;
 import com.goormpj.decimal.board.repository.RecruitPostRepository;
 import com.goormpj.decimal.user.domain.Member;
@@ -59,7 +61,7 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
     }
 
 
-    // 부모 게시글에 딸린 모집 게시글 모두 불러오기
+    // 부모 게시글에 딸린 지원 게시글 모두 불러오기
     @Override
     @Transactional(readOnly = true)
     public List<RecruitInfoDTO> getRecruitInfosByParentPostId(Long parentPostId) {
@@ -72,7 +74,7 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
     }
 
 
-    // 특정 유저가 작성한 모든 모집 게시글 불러오기
+    // 특정 유저가 작성한 모든 지원 게시글 불러오기
     @Override
     @Transactional(readOnly = true)
     public List<RecruitInfoDTO> getMyRecruitInfos(CustomUserDetails customUserDetails) {
@@ -81,6 +83,18 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
 
         return recruitInfos.stream()
                 .map(RecruitInfoMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    // 특정 유저가 지원한 모든 모집 게시글 불러오기
+    @Override
+    @Transactional(readOnly = true)
+    public List<RecruitPostResponseDTO> getMyRecruitPost(CustomUserDetails customUserDetails) {
+        Long userId = Long.valueOf(customUserDetails.getUsername());
+        List<RecruitPost> recruitInfos = recruitInfoRepository.findRecruitPostsByApplicantId(userId);
+
+        return recruitInfos.stream()
+                .map(RecruitPostMapper::entityToResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -105,7 +119,7 @@ public class RecruitInfoServiceImpl implements RecruitInfoService {
         return RecruitInfoMapper.toDto(updatedRecruitInfo);
     }
 
-    // 모집 수락 혹은 거절
+    // 지원 수락 혹은 거절
     @Override
     @Transactional
     public void respondToRecruit(Long id, boolean accept) {

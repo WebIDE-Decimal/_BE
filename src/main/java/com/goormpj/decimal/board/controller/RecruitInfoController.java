@@ -1,6 +1,7 @@
 package com.goormpj.decimal.board.controller;
 
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
+import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
 import com.goormpj.decimal.board.entity.RecruitInfo;
 import com.goormpj.decimal.board.mapper.RecruitInfoMapper;
 import com.goormpj.decimal.board.service.RecruitInfoService;
@@ -34,17 +35,24 @@ public class RecruitInfoController {
         return new ResponseEntity<>(createdRecruitInfoDTO, HttpStatus.CREATED);
     }
 
-    // 부모 게시글에 딸린 모집 게시글 모두 불러오기
+    // 부모 게시글에 딸린 지원 게시글 모두 불러오기
     @GetMapping("/{parentPostId}")
     public ResponseEntity<List<RecruitInfoDTO>> getRecruitInfosByParentPostId(@PathVariable Long parentPostId) {
         List<RecruitInfoDTO> recruitInfoDTOs = recruitInfoService.getRecruitInfosByParentPostId(parentPostId);
         return ResponseEntity.ok(recruitInfoDTOs);
     }
 
-    // 특정 유저가 작성한 모든 모집 게시글 불러오기
-    @GetMapping("/mypost/info")
+    // 특정 유저가 작성한 모든 지원 게시글 불러오기
+    @GetMapping("/myPost")
     public ResponseEntity<List<RecruitInfoDTO>> getMyRecruitInfos(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         List<RecruitInfoDTO> myRecruitInfoDTOs = recruitInfoService.getMyRecruitInfos(customUserDetails);
+        return ResponseEntity.ok(myRecruitInfoDTOs);
+    }
+
+    // 특정 유저가 지원한 모든 모집 게시글 불러오기
+    @GetMapping("/myApply")
+    public ResponseEntity<List<RecruitPostResponseDTO>> getMyRecruitPost(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        List<RecruitPostResponseDTO> myRecruitInfoDTOs = recruitInfoService.getMyRecruitPost(customUserDetails);
         return ResponseEntity.ok(myRecruitInfoDTOs);
     }
 
@@ -55,14 +63,14 @@ public class RecruitInfoController {
         return ResponseEntity.ok().build();
     }
 
-    // 모집 게시글 수정
+    // 지원 게시글 수정
     @PutMapping("/{id}")
     public ResponseEntity<RecruitInfoDTO> updateRecruitInfo(@PathVariable Long id, @RequestBody RecruitInfoDTO recruitInfoDTO) {
         RecruitInfoDTO updatedRecruitInfoDTO = recruitInfoService.updateRecruitInfo(id, recruitInfoDTO);
         return ResponseEntity.ok(updatedRecruitInfoDTO);
     }
 
-    // 모집 수락 혹은 거절
+    // 지원 수락 혹은 거절
     @PatchMapping("/{id}/response")
     public ResponseEntity<Void> respondToRecruit(@PathVariable Long id, @RequestParam("accept") boolean accept) {
         recruitInfoService.respondToRecruit(id, accept);

@@ -1,11 +1,15 @@
 package com.goormpj.decimal.board.service;
 
 import com.goormpj.decimal.board.dto.RecruitPostRequestDTO;
+import com.goormpj.decimal.board.dto.RecruitPostResponseDTO;
+import com.goormpj.decimal.board.entity.RecruitInfo;
 import com.goormpj.decimal.board.entity.RecruitPost;
+import com.goormpj.decimal.board.mapper.RecruitInfoMapper;
 import com.goormpj.decimal.board.mapper.RecruitPostMapper;
 import com.goormpj.decimal.board.repository.RecruitPostRepository;
 import com.goormpj.decimal.user.domain.Member;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
+import com.goormpj.decimal.user.mapper.CustomUserDetailsMapper;
 import com.goormpj.decimal.user.repository.MemberRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -13,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RecruitPostServiceImpl implements RecruitPostService {
@@ -38,17 +43,25 @@ public class RecruitPostServiceImpl implements RecruitPostService {
                 .orElseThrow(() -> new IllegalArgumentException("No such post found"));
     }
 
+    // 새 모집 게시글 생성
     @Override
     public RecruitPost createRecruitPost(RecruitPostRequestDTO requestDTO, CustomUserDetails customUserDetails) {
         RecruitPost responsePost = RecruitPostMapper.requestDtoToEntity(requestDTO);
-        responsePost.setIsWriter(true);
-        Long userId = Long.valueOf(customUserDetails.getUsername());
+        Member userDetail = CustomUserDetailsMapper.detailsToMember(customUserDetails);
 
-        Member writer = memberRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Member not found with id: " + userId));
-
-        responsePost.setWriter(writer);
+        responsePost.setWriter(userDetail);
         return recruitPostRepository.save(responsePost);
+    }
+
+    // 로그인 한 사용자가 작성한 모든 모집 게시글 조회
+    @Override
+    public List<RecruitPostResponseDTO> getMyRecruitPosts(CustomUserDetails customUserDetails) {
+        Long userId = Long.valueOf(customUserDetails.getUsername());
+        List<RecruitPost> recruitInfos = recruitPostRepository.findByWriterIdAndIsDeletedFalse(userId);
+
+        return recruitInfos.stream()
+                .map(RecruitPostMapper::entityToResponseDto)
+                .collect(Collectors.toList());
     }
 
     @Override
