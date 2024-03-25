@@ -23,9 +23,9 @@ public class Study {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "leader_id")
-    private Member leader;
+    private Member member;
 
-//    private String field;
+    private Boolean isLeader;
 
     private String name;
 
@@ -38,12 +38,7 @@ public class Study {
     @JoinColumn(name = "recruit_post_id")
     private RecruitPost recruitPost;
 
-    // RecruitPost 기반으로 Study 생성
-    public static Study createStudy(RecruitPost recruitPost) {
-        Study study = new Study();
-        study.setLeader(recruitPost.getWriter());
-        study.setName(recruitPost.getTitle());
-        study.setMemberCount(recruitPost.getRecruited());
-        return study;
+    public Study() {
     }
+
 }

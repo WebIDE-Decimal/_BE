@@ -1,10 +1,14 @@
 package com.goormpj.decimal.ide.service;
 
+import com.goormpj.decimal.board.dto.RecruitInfoDTO;
+import com.goormpj.decimal.board.dto.RecruitPostRequestDTO;
 import com.goormpj.decimal.board.entity.RecruitPost;
 import com.goormpj.decimal.ide.domain.Study;
 import com.goormpj.decimal.ide.domain.Folder;
 import com.goormpj.decimal.ide.repository.FolderRepository;
 import com.goormpj.decimal.ide.repository.StudyRepository;
+import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,14 +23,25 @@ public class StudyServiceImpl implements StudyService {
 
     private final StudyRepository studyRepository;
     private final FolderService folderService;
+    private final MemberRepository memberRepository;
 
     @Override
-    public Study createStudy(RecruitPost recruitPost) {
+    public Study createStudy(RecruitPostRequestDTO requestDTO, RecruitInfoDTO recruitInfoDTO) {
         Study newStudy = null;
 
         // 상태가 false인 경우에만 스터디 생성
-        if (recruitPost.getState().equals("false")) {
-            newStudy = Study.createStudy(recruitPost);
+        if (recruitInfoDTO.getState().equals("false")) {
+            newStudy = new Study();
+            newStudy.setName(requestDTO.getTitle());
+            newStudy.setMemberCount(requestDTO.getRecruited());
+
+            // 리더 정보 설정
+            Member leader = memberRepository.findById(recruitInfoDTO.getId()).orElse(null);
+            if (leader != null) {
+                newStudy.setMember(leader);
+                newStudy.setIsLeader(true);
+            }
+
             // 스터디 저장
             studyRepository.save(newStudy);
         }
