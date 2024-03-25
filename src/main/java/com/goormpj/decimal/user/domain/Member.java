@@ -41,4 +41,17 @@ public class Member {
         this.authority = Authority.ROLE_USER;
     }
 
+
+    //@Builder
+    public void updateNickname(String nickname){
+        this.nickname = nickname;
+    }
+
+    //@Builder
+    public void updatePassword(String password){
+        this.password = password;
+    }
+
+
+
 }

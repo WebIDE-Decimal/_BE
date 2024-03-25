@@ -1,8 +1,9 @@
 package com.goormpj.decimal.user.controller;
 
 import com.goormpj.decimal.user.domain.Member;
-import com.goormpj.decimal.user.dto.CheckNicknameRequest;
+import com.goormpj.decimal.user.dto.NicknameRequestDTO;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
+import com.goormpj.decimal.user.dto.PasswordRequestDTO;
 import com.goormpj.decimal.user.dto.SignUpRequestDTO;
 import com.goormpj.decimal.user.service.MemberService;
 import com.goormpj.decimal.user.util.AuthUtils;
@@ -40,13 +41,7 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO, BindingResult bindingResult){
         if (bindingResult.hasErrors()) {
-            // Validation 에러가 있을 경우 처리
-            StringBuilder errors = new StringBuilder();
-            bindingResult.getAllErrors().forEach((error) -> {
-                String errorMessage = error.getDefaultMessage();
-                errors.append(errorMessage).append("\n");
-            });
-            return ResponseEntity.badRequest().body(errors.toString());
+            return handleValidationErrors(bindingResult);
         }
 
         //이메일 중복 확인
@@ -66,12 +61,55 @@ public class MemberController {
     }
 
     @PostMapping("/checkNickname")
-    public ResponseEntity<String> checkNickname(@RequestBody CheckNicknameRequest checkNicknameRequest){
-        if(memberService.existsByNickname(checkNicknameRequest.getNickname())) {
+    public ResponseEntity<String> checkNickname(@Valid @RequestBody NicknameRequestDTO nicknameRequestDTO, BindingResult bindingResult){
+        if (bindingResult.hasErrors()) {
+            return handleValidationErrors(bindingResult);
+        }
+
+        if(memberService.existsByNickname(nicknameRequestDTO.getNickname())) {
             return ResponseEntity.badRequest().body("닉네임 중복 오류");
         }else{
             return ResponseEntity.ok().body("닉네임 사용 가능");
         }
+    }
+
+    @PostMapping("/updateNickname")
+    public ResponseEntity<String> updateeNickname(@AuthenticationPrincipal CustomUserDetails customUserDetails, @Valid @RequestBody NicknameRequestDTO nicknameRequestDTO, BindingResult bindingResult){
+        if (bindingResult.hasErrors()) {
+            return handleValidationErrors(bindingResult);
+        }
+
+        //중복 확인
+        if(memberService.existsByNickname(nicknameRequestDTO.getNickname())) {
+            return ResponseEntity.badRequest().body("닉네임 중복 오류");
+        }else{
+            Long id = Long.parseLong(customUserDetails.getUsername());
+            memberService.updateNickname(id , nicknameRequestDTO);
+            return ResponseEntity.ok().body("닉네임 변경 완료");
+        }
+    }
+
+    @PostMapping("/updatePassword")
+    public ResponseEntity<String> updatePassword(@AuthenticationPrincipal CustomUserDetails customUserDetails,@Valid @RequestBody PasswordRequestDTO passwordRequestDTO, BindingResult bindingResult){
+        if (bindingResult.hasErrors()) {
+            return handleValidationErrors(bindingResult);
+        }
+
+        Long id = Long.parseLong(customUserDetails.getUsername());
+        if(memberService.updatePassword(id, passwordRequestDTO)) {
+            return ResponseEntity.ok().body("비밀번호 변경 완료");
+        }else{
+            return ResponseEntity.badRequest().body("비밀번호 변경 실패");
+        }
+    }
+
+    private ResponseEntity<String> handleValidationErrors(BindingResult bindingResult) {
+        StringBuilder errors = new StringBuilder();
+        bindingResult.getAllErrors().forEach((error) -> {
+            String errorMessage = error.getDefaultMessage();
+            errors.append(errorMessage).append("\n");
+        });
+        return ResponseEntity.badRequest().body(errors.toString());
     }
 
 }
