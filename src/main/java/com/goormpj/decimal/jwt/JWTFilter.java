@@ -2,7 +2,6 @@ package com.goormpj.decimal.jwt;
 
 import com.goormpj.decimal.user.domain.Member;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
-import com.goormpj.decimal.user.service.MemberService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,7 +22,6 @@ import java.io.PrintWriter;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTProvider jwtProvider;
-    private final MemberService memberService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -58,8 +56,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         String memberId = jwtProvider.getMemberId(accessToken);
-        Member member = memberService.findById(Long.parseLong(memberId));
-//        Member member = new Member(Long.parseLong(memberId));
+        Member member = new Member(Long.parseLong(memberId));
         log.info("JWTFilter class - member.getId() {}", member.getId());
 
         CustomUserDetails customUserDetails = new CustomUserDetails(member);
