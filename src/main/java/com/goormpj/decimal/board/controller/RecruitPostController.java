@@ -61,6 +61,7 @@ public class RecruitPostController {
 
 
     // 새 모집 게시글 생성
+    @CrossOrigin
     @PostMapping
     public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO,
                                                                     @AuthenticationPrincipal(errorOnInvalidType=true) CustomUserDetails customUserDetails) {
