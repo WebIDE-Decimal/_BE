@@ -3,6 +3,8 @@ package com.goormpj.decimal.user.service;
 import com.goormpj.decimal.user.domain.Authority;
 import com.goormpj.decimal.user.domain.Member;
 import com.goormpj.decimal.user.dto.LoginRequestDTO;
+import com.goormpj.decimal.user.dto.NicknameRequestDTO;
+import com.goormpj.decimal.user.dto.PasswordRequestDTO;
 import com.goormpj.decimal.user.dto.SignUpRequestDTO;
 import com.goormpj.decimal.user.repository.MemberRepository;
 import lombok.AllArgsConstructor;
@@ -10,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -65,5 +69,26 @@ public class MemberServiceImpl implements MemberService{
     public Member findById(Long id) {
         return memberRepository.findById(id).orElseThrow();
     }
+
+    //Boolean updatePassword(Long id, PasswordRequestDTO passwordRequestDTO); 비밀번호 변경
+    @Override
+    public Boolean updatePassword(Long id, PasswordRequestDTO passwordRequestDTO) {
+        Member member = memberRepository.findById(id).orElse(null);
+        if(member == null)
+            return false;
+        else{
+            member.updatePassword(passwordEncoder.encode(passwordRequestDTO.getPassword()));
+            return true;
+        }
+
+    }
+
+    //void updateNickname(Long id, NicknameRequestDTO nicknameRequestDTO); 닉네임 변경
+    @Override
+    public void updateNickname(Long id, NicknameRequestDTO nicknameRequestDTO) {
+        Member member = memberRepository.findById(id).orElse(null);
+        member.updateNickname(nicknameRequestDTO.getNickname());
+    }
+
 
 }
