@@ -63,7 +63,7 @@ public class RecruitPostController {
     // 새 모집 게시글 생성
     @PostMapping
     public ResponseEntity<RecruitPostResponseDTO> createRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO,
-                                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+                                                                    @AuthenticationPrincipal(errorOnInvalidType=true) CustomUserDetails customUserDetails) {
         RecruitPost savedPost = recruitPostService.createRecruitPost(requestDTO, customUserDetails);
         RecruitPostResponseDTO responseDTO = RecruitPostMapper.entityToResponseDto(savedPost);
 
