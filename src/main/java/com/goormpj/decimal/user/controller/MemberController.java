@@ -1,20 +1,21 @@
 package com.goormpj.decimal.user.controller;
 
 import com.goormpj.decimal.user.domain.Member;
+import com.goormpj.decimal.user.dto.CheckNicknameRequest;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
-import com.goormpj.decimal.user.dto.LoginResponseDTO;
 import com.goormpj.decimal.user.dto.SignUpRequestDTO;
-import com.goormpj.decimal.user.mapper.MemberMapper;
 import com.goormpj.decimal.user.service.MemberService;
 import com.goormpj.decimal.user.util.AuthUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
@@ -62,6 +63,15 @@ public class MemberController {
         memberService.save(signUpRequestDTO);
 
         return ResponseEntity.ok().body("회원가입 성공");
+    }
+
+    @PostMapping("/checkNickname")
+    public ResponseEntity<String> checkNickname(@RequestBody CheckNicknameRequest checkNicknameRequest){
+        if(memberService.existsByNickname(checkNicknameRequest.getNickname())) {
+            return ResponseEntity.badRequest().body("닉네임 중복 오류");
+        }else{
+            return ResponseEntity.ok().body("닉네임 사용 가능");
+        }
     }
 
 }
