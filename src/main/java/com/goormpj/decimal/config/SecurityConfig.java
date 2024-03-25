@@ -5,6 +5,7 @@ import com.goormpj.decimal.jwt.JWTFilter;
 import com.goormpj.decimal.jwt.JWTProvider;
 import com.goormpj.decimal.jwt.LoginFilter;
 import com.goormpj.decimal.user.repository.RefreshTokenRepository;
+import com.goormpj.decimal.user.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,7 @@ public class SecurityConfig {
     private final JWTProvider jwtProvider;
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberService memberService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -83,7 +85,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/signup", "/", "/api/login","/api/logout").permitAll()
                         .requestMatchers("/api/reissue").permitAll()
                         .anyRequest().authenticated())
-                .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
+                .addFilterBefore(new JWTFilter(jwtProvider, memberService), LoginFilter.class)
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtProvider, refreshTokenRepository), LogoutFilter.class)
                 .sessionManagement((session) -> session
