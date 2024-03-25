@@ -68,7 +68,7 @@ public class MailService {
 
     public String generateVerificationMailLink(String token, String type) {
         // 생성된 토큰을 이용하여 인증 링크 생성
-        String verificationLink = verificationUrl + "/api/verify-email/valid?token=" + token + "&type=" + type;
+        String verificationLink = verificationUrl + "/setPassword?token=" + token + "&type=" + type;
         return verificationLink;
     }
 
