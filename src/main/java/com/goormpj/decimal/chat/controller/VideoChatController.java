@@ -64,17 +64,37 @@ public class VideoChatController {
 
     // 세션 연결
     @PostMapping("/sessions/{sessionId}/connections")
-    public ResponseEntity<String> createConnection(@PathVariable String sessionId,
-                                                   @RequestBody(required = false) VideoChatDto videoChatDto,
-                                                   @AuthenticationPrincipal CustomUserDetails customUserDetails)
-    {
+    public ResponseEntity<?> createConnection(@PathVariable String sessionId,
+                                              @RequestBody(required = false) VideoChatDto videoChatDto,
+                                              @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        if (sessionId == null || sessionId.isEmpty()) {
+            // sessionId 유효성 검증 실패
+            return new ResponseEntity<>("Session ID is missing or invalid.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (videoChatDto == null) {
+            // videoChatDto가 null인 경우
+            return new ResponseEntity<>("Request body is missing.", HttpStatus.BAD_REQUEST);
+        }
+
         try {
             String token = videoChatService.createConnection(sessionId, videoChatDto, customUserDetails);
             return ResponseEntity.ok(token);
+        } catch (OpenViduJavaClientException e) {
+            // OpenVidu Java 클라이언트 관련 예외 처리
+            return new ResponseEntity<>("Error while communicating with OpenVidu Java Client: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (OpenViduHttpException e) {
+            // OpenVidu HTTP 에러 처리
+            return new ResponseEntity<>("OpenVidu server error with HTTP status " + e.getStatus() + ": " + e.getMessage(), HttpStatus.valueOf(e.getStatus()));
+        } catch (IllegalArgumentException e) {
+            // 잘못된 인자 예외 처리
+            return new ResponseEntity<>("Invalid argument: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            // 기타 예외 처리
+            return new ResponseEntity<>("Unexpected error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     // 특정 사용자를 session에 초대(추가)
     @PostMapping("/sessions/{sessionId}/invite")
