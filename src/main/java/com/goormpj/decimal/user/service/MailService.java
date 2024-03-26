@@ -30,7 +30,7 @@ public class MailService {
 
     public void sendMail(VerificationEmailRequest verificationEmailRequest) throws IOException {
         MailToken mailToken = generateMailToken(verificationEmailRequest.getEmail());
-        String link = generateVerificationMailLink(mailToken.getToken(), verificationEmailRequest.getType());
+        String link = generateVerificationMailLink(mailToken.getToken(), verificationEmailRequest);
 
         String htmlFileName, subject;
         if(verificationEmailRequest.getType().equals("email")){
@@ -66,9 +66,9 @@ public class MailService {
         return MailToken.createMailToken(userEmail);
     }
 
-    public String generateVerificationMailLink(String token, String type) {
+    public String generateVerificationMailLink(String token, VerificationEmailRequest verificationEmailRequest) {
         // 생성된 토큰을 이용하여 인증 링크 생성
-        String verificationLink = verificationUrl + "/setPassword?token=" + token + "&type=" + type;
+        String verificationLink = verificationUrl + "/setPassword?token=" + token + "&type=" + verificationEmailRequest.getType() + "&email=" + verificationEmailRequest.getEmail();
         return verificationLink;
     }
 
