@@ -10,10 +10,10 @@ public class CorsMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
+        registry.addMapping("/api/**")
                 .allowedOrigins("https://groomcosmos.site")
-                .allowedMethods("*")
-                .allowedHeaders("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("access_token", "refresh_token", "content-type")
                 .allowCredentials(true);
     }
 
