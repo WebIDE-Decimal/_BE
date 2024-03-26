@@ -4,6 +4,8 @@ import com.goormpj.decimal.chat.dto.ChatMessageDto;
 import com.goormpj.decimal.chat.dto.VideoChatDto;
 import com.goormpj.decimal.chat.service.VideoChatService;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
+import io.openvidu.java.client.OpenViduHttpException;
+import io.openvidu.java.client.OpenViduJavaClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -27,16 +30,37 @@ public class VideoChatController {
 
     // 세션 생성
     @PostMapping("/sessions")
-    public ResponseEntity<String> initializeSession(@RequestBody(required = false) VideoChatDto videoChatDto,
-                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails)
-    {
+    public ResponseEntity<String> initializeSession(@RequestBody VideoChatDto videoChatDto,
+                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        if (videoChatDto == null) {
+            // videoChatDto가 null인 경우의 에러 메시지
+            return new ResponseEntity<>("Request body (videoChatDto) is null", HttpStatus.BAD_REQUEST);
+        }
+
+        if (videoChatDto.getProperties() == null) {
+            // properties 필드가 null인 경우의 에러 메시지
+            return new ResponseEntity<>("'properties' field in videoChatDto is null", HttpStatus.BAD_REQUEST);
+        }
+
         try {
             String sessionId = videoChatService.initializeSession(videoChatDto, customUserDetails);
             return ResponseEntity.ok(sessionId);
+        } catch (OpenViduJavaClientException e) {
+            // OpenViduJavaClientException 발생 시 처리
+            return new ResponseEntity<>("OpenVidu Java Client error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (OpenViduHttpException e) {
+            // OpenViduHttpException 발생 시 처리
+            if (e.getStatus() == HttpStatus.UNAUTHORIZED.value()) {
+                return new ResponseEntity<>("OpenVidu authorization error: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+            } else {
+                return new ResponseEntity<>("OpenVidu HTTP error: " + e.getMessage(), HttpStatus.valueOf(e.getStatus()));
+            }
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            // 기타 예외 처리
+            return new ResponseEntity<>("Unexpected error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     // 세션 연결
     @PostMapping("/sessions/{sessionId}/connections")
