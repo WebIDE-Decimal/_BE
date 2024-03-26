@@ -18,10 +18,10 @@ public class FolderController {
     private final FolderService folderService;
 
     // 새 폴더 생성
-    @PostMapping("/studies")
+    @PostMapping("/folders")
     public ResponseEntity<Folder> createFolder(@RequestBody FolderRequestDTO folderRequestDTO) {
 
-        Folder newFolder = folderService.createFolderWithFile(folderRequestDTO.getFolderName(), folderRequestDTO.getParentId(), folderRequestDTO.getFileName());
+        Folder newFolder = folderService.createFolderWithFile(folderRequestDTO.getFolderName(), folderRequestDTO.getParentId());
 
         if (newFolder != null) {
             return new ResponseEntity<>(newFolder, HttpStatus.CREATED);

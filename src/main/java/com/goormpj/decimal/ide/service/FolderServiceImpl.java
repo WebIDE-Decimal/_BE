@@ -33,7 +33,7 @@ public class FolderServiceImpl implements FolderService {
     }
 
     @Override
-    public Folder createFolderWithFile(String folderName, Long parentId, String fileName) {
+    public Folder createFolderWithFile(String folderName, Long parentId) {
 
         Folder parentFolder = null;
         int depth = 0;
@@ -47,15 +47,15 @@ public class FolderServiceImpl implements FolderService {
         Folder newFolder = new Folder(folderName, parentFolder, depth);
         folderRepository.save(newFolder);
 
-        // 파일 생성
-        if (fileName != null && !fileName.isEmpty()) {
-            File newStudyFile = new File();
-            newStudyFile.setFileName(fileName);
-            fileRepository.save(newStudyFile);
-
-            newFolder.getStudyFiles().add(newStudyFile);
-            folderRepository.save(newFolder);
-        }
+//        // 파일 생성
+//        if (fileName != null && !fileName.isEmpty()) {
+//            File newStudyFile = new File();
+//            newStudyFile.setFileName(fileName);
+//            fileRepository.save(newStudyFile);
+//
+//            newFolder.getStudyFiles().add(newStudyFile);
+//            folderRepository.save(newFolder);
+//        }
 
         return newFolder;
     }

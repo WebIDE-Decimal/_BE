@@ -23,8 +23,6 @@ public class StudyController {
     private final StudyService studyService;
 
     // 스터디 생성 시 최상위 폴더 생성
-    // 스터디 상세 정보 조회 및 화면에 표시
-
     @PostMapping("/study")
     public ResponseEntity<String> createStudyFromRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO, RecruitInfoDTO recruitInfoDTO) {
         Study newStudy = studyService.createStudy(requestDTO, recruitInfoDTO);
@@ -37,6 +35,7 @@ public class StudyController {
             return ResponseEntity.badRequest().body("스터디 생성에 실패했습니다.");
         }
     }
+
     @GetMapping("/study/{id}")
     public ResponseEntity<StudyResponseDTO> getStudyDetails(@PathVariable Long id) {
         Study study = studyService.getStudyById(id);
