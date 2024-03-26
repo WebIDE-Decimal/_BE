@@ -6,6 +6,8 @@ import com.goormpj.decimal.chat.service.VideoChatService;
 import com.goormpj.decimal.user.dto.CustomUserDetails;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import java.util.Map;
 public class VideoChatController {
 
     private final VideoChatService videoChatService;
+    private static final Logger log = LoggerFactory.getLogger(VideoChatController.class);
 
     @Autowired
     public VideoChatController(VideoChatService videoChatService) {
@@ -131,17 +134,32 @@ public class VideoChatController {
     // 사용자가 연결된 모든 세션 가져오기
     @GetMapping("/mysessions")
     public ResponseEntity<List<String>> getUserSessions(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        Long memberId = Long.parseLong(customUserDetails.getUsername());
+        if (customUserDetails == null || customUserDetails.getUsername() == null) {
+            log.warn("Unauthorized access attempt.");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Long memberId;
+        try {
+            memberId = Long.parseLong(customUserDetails.getUsername());
+        } catch (NumberFormatException e) {
+            log.error("Error parsing memberId from username: {}", customUserDetails.getUsername(), e);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         try {
             List<String> sessions = videoChatService.getUserSessionsId(memberId);
             if (sessions.isEmpty()) {
+                log.info("No sessions found for memberId: {}", memberId);
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(sessions);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Internal server error while retrieving sessions for memberId: {}", memberId, e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     // 메세지 저장하기
     @MessageMapping("{sessionId}/chat.sendMessage/")
