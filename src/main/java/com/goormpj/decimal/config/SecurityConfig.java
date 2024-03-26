@@ -61,7 +61,7 @@ public class SecurityConfig {
                             CorsConfiguration config = new CorsConfiguration();
                             config.setAllowedOrigins(List.of("https://groomcosmos.site"));
                             config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                            config.setAllowedHeaders(Arrays.asList("access_token", "refresh_token", "content-type"));
+                            config.setAllowedHeaders(List.of("*"));
                             config.setAllowCredentials(true);
                             config.setMaxAge(3600L);
 
