@@ -1,5 +1,6 @@
 package com.goormpj.decimal.user.controller;
 
+import com.goormpj.decimal.user.dto.MailRequestDTO;
 import com.goormpj.decimal.user.dto.VerificationEmailRequest;
 import com.goormpj.decimal.user.service.MailService;
 import com.goormpj.decimal.user.service.MemberService;
@@ -62,14 +63,15 @@ public class MailController {
         return null;
     }
 
-    @GetMapping("/valid")
-    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token, @RequestParam("type") String type) {
-        Boolean isValid = mailService.verifyEmail(token);
+    @PostMapping("/valid")
+    public ResponseEntity<String> verifyEmail(@RequestBody MailRequestDTO mailRequestDTO) {
+        Boolean isValid = mailService.verifyEmail(mailRequestDTO.getToken());
         if (isValid) {
-            return ResponseEntity.ok("이메일 인증 완료 - " + type);
+            return ResponseEntity.ok("이메일 인증 완료 - " + mailRequestDTO.getType());
         } else {
             return ResponseEntity.badRequest().body("메일 인증 토큰이 유효하지 않습니다.");
         }
     }
+
 
 }
