@@ -32,10 +32,10 @@ public class MemberController {
 
     //로그인한 회원 정보 가져오기 예시
     @PostMapping("/memberProfile")
-    public ResponseEntity<String> getMemberProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public ResponseEntity<Member> getMemberProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Optional<Member> loggedInMember = authUtils.getLoggedInMember(customUserDetails);
-        //return ResponseEntity.ok().body(loggedInMember.orElse(null));
-        return ResponseEntity.ok().body(customUserDetails.getUsername());
+        //return ResponseEntity.ok().body(customUserDetails.getUsername());
+        return ResponseEntity.ok().body(loggedInMember.orElse(null));
     }
 
     @PostMapping("/signup")
