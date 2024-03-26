@@ -67,7 +67,7 @@ public class VideoChatController {
 
     // 세션 연결
     @PostMapping("/sessions/{sessionId}/connections")
-    public ResponseEntity<?> createConnection(@PathVariable String sessionId,
+    public ResponseEntity<?> createConnection(@PathVariable("sessionId") String sessionId,
                                               @RequestBody(required = false) VideoChatDto videoChatDto,
                                               @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         if (sessionId == null || sessionId.isEmpty()) {
@@ -102,7 +102,7 @@ public class VideoChatController {
     // 특정 사용자를 session에 초대(추가)
     @PostMapping("/sessions/{sessionId}/invite")
     public ResponseEntity<?> inviteUserToSession(
-            @PathVariable String sessionId,
+            @PathVariable("sessionId") String sessionId,
             @RequestParam String inviteeId)
     {
         try {
@@ -118,7 +118,7 @@ public class VideoChatController {
     // 세션에서 사용자를 제거(삭제)
     @DeleteMapping("/sessions/{sessionId}/leave")
     public ResponseEntity<?> leaveSession(
-            @PathVariable String sessionId,
+            @PathVariable("sessionId") String sessionId,
             @RequestParam String userId)
     {
         try {
@@ -163,7 +163,7 @@ public class VideoChatController {
 
     // 메세지 저장하기
     @MessageMapping("{sessionId}/chat.sendMessage/")
-    public void sendMessage(@PathVariable String sessionId,
+    public void sendMessage(@PathVariable("sessionId") String sessionId,
                             @Payload ChatMessageDto chatMessageDto) {
         chatMessageDto.setSessionId(sessionId);
         videoChatService.messageSave(chatMessageDto);
@@ -171,7 +171,7 @@ public class VideoChatController {
 
     // 세션에서 메세지 불러오기
     @MessageMapping("{sessionId}/chat.getMessages/")
-    public List<ChatMessageDto> getMessages(@PathVariable String sessionId) {
+    public List<ChatMessageDto> getMessages(@PathVariable("sessionId") String sessionId) {
         return videoChatService.getMessagesBySessionId(sessionId);
     }
 
