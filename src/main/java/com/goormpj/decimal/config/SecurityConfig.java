@@ -63,23 +63,12 @@ public class SecurityConfig {
                             config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                             config.setAllowedHeaders(Arrays.asList("access_token", "refresh_token", "content-type"));
                             config.setAllowCredentials(true);
-                            config.setAllowedHeaders(Arrays.asList("*"));
                             config.setMaxAge(3600L);
 
                             config.setExposedHeaders(Arrays.asList("Set-Cookie"));
                             config.setExposedHeaders(Arrays.asList("access_token"));
                             return config;
                         }))
-
-                // h2-console 쓰려고 잠시 추가
-                .headers(
-                        headersConfigurer ->
-                                headersConfigurer
-                                        .frameOptions(
-                                                HeadersConfigurer.FrameOptionsConfig::sameOrigin
-                                        )
-                )
-
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/**").permitAll() // 모든 경로 허용
                         .requestMatchers("/api/users/signup", "/", "/api/login","/api/logout").permitAll()
