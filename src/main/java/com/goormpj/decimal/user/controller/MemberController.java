@@ -99,11 +99,11 @@ public class MemberController {
 
         Boolean result = memberService.updatePassword(id, passwordRequestDTO);
         if(result) {
-            return ResponseEntity.ok().body("비밀번호 변경 완료");
+            return ResponseEntity.ok().body("비밀번호가 변경되었습니다.");
         }else if(!result){
-            return ResponseEntity.badRequest().body("기존 비밀번호 일치 XXX");
+            return ResponseEntity.badRequest().body("기존 비밀번호가 일치하지 않습니다.");
         }else{
-            return ResponseEntity.badRequest().body("로그인 정보 없음");
+            return ResponseEntity.badRequest().body("로그인 정보가 존재하지 않습니다.");
         }
     }
 
