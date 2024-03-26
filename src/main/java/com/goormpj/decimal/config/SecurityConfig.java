@@ -24,6 +24,7 @@ import org.springframework.security.web.header.writers.frameoptions.XFrameOption
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity //추가
@@ -58,8 +59,9 @@ public class SecurityConfig {
                 .cors(cors -> cors
                         .configurationSource(request -> {
                             CorsConfiguration config = new CorsConfiguration();
-                            config.setAllowedOrigins(Arrays.asList("https://groomcosmos.site"));
-                            config.setAllowedMethods(Arrays.asList("*"));
+                            config.setAllowedOrigins(List.of("https://groomcosmos.site"));
+                            config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                            config.setAllowedHeaders(Arrays.asList("access_token", "refresh_token", "content-type"));
                             config.setAllowCredentials(true);
                             config.setAllowedHeaders(Arrays.asList("*"));
                             config.setMaxAge(3600L);
