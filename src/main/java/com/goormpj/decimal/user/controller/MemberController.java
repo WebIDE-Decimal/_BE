@@ -96,10 +96,14 @@ public class MemberController {
         }
 
         Long id = Long.parseLong(customUserDetails.getUsername());
-        if(memberService.updatePassword(id, passwordRequestDTO)) {
+
+        Boolean result = memberService.updatePassword(id, passwordRequestDTO);
+        if(result) {
             return ResponseEntity.ok().body("비밀번호 변경 완료");
+        }else if(!result){
+            return ResponseEntity.badRequest().body("기존 비밀번호 일치 XXX");
         }else{
-            return ResponseEntity.badRequest().body("비밀번호 변경 실패");
+            return ResponseEntity.badRequest().body("로그인 정보 없음");
         }
     }
 
