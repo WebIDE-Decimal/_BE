@@ -36,4 +36,31 @@ public class AnswerServiceImpl implements AnswerService {
 
         return AnswerMapper.toResponseDTO(savedAnswer);
     }
+
+    @Override
+    public AnswerResponseDTO updateAnswer(Long answerId, AnswerRequestDTO requestDTO, Long userId) {
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(() -> new IllegalArgumentException("Answer not found with id: " + answerId));
+
+        if (!answer.getWriter().getId().equals(userId)) {
+            throw new SecurityException("You do not have permission to update this answer.");
+        }
+
+        answer.setContent(requestDTO.getContent());
+        Answer savedAnswer = answerRepository.save(answer);
+
+        return AnswerMapper.toResponseDTO(savedAnswer);
+    }
+
+    @Override
+    public void deleteAnswer(Long answerId, Long userId) {
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(() -> new IllegalArgumentException("Answer not found with id: " + answerId));
+
+        if(!answer.getWriter().getId().equals(userId)) {
+            throw new SecurityException("You do not have permission to delete this answer.");
+        }
+
+        answerRepository.delete(answer);
+    }
 }
