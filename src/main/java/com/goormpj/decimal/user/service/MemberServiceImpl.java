@@ -74,10 +74,12 @@ public class MemberServiceImpl implements MemberService{
     @Override
     public Boolean updatePassword(Long id, PasswordRequestDTO passwordRequestDTO) {
         Member member = memberRepository.findById(id).orElse(null);
-        if(member == null)
+        boolean matches = passwordEncoder.matches(passwordRequestDTO.getPassword(), member.getPassword());
+
+        if(!matches)
             return false;
         else{
-            member.updatePassword(passwordEncoder.encode(passwordRequestDTO.getPassword()));
+            member.updatePassword(passwordEncoder.encode(passwordRequestDTO.getNewPassword()));
             return true;
         }
 
