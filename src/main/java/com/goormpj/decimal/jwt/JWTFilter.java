@@ -30,41 +30,67 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
+            log.info("No access_token found in request headers.");
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
+            // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
             jwtProvider.isExpired(accessToken);
         } catch (ExpiredJwtException e) {
+            log.error("Access token expired: " + e.getMessage(), e);
             PrintWriter writer = response.getWriter();
             writer.print("access_token expired");
-
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); //401 error
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 error
             return;
-        }
-
-        // 토큰이 access_token 인지 확인 (발급시 페이로드에 명시)
-        String category = jwtProvider.getCategory(accessToken);
-        if (!category.equals("access_token")) {
+        } catch (Exception e) {
+            log.error("Error processing access_token: " + e.getMessage(), e);
             PrintWriter writer = response.getWriter();
-            writer.print("invalid access_token");
-
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); //401 error
+            writer.print("Error in access_token processing");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 error
             return;
         }
 
-        String memberId = jwtProvider.getMemberId(accessToken);
-        Member member = new Member(Long.parseLong(memberId));
-        log.info("JWTFilter class - member.getId() {}", member.getId());
+        try {
+            // 토큰이 access_token 인지 확인 (발급시 페이로드에 명시)
+            String category = jwtProvider.getCategory(accessToken);
+            if (!category.equals("access_token")) {
+                log.warn("Invalid access_token category: expected 'access_token' but found '" + category + "'");
+                PrintWriter writer = response.getWriter();
+                writer.print("invalid access_token");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 error
+                return;
+            }
+        } catch (Exception e) {
+            log.error("Error validating access_token category: " + e.getMessage(), e);
+            PrintWriter writer = response.getWriter();
+            writer.print("Error validating access_token");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 error
+            return;
+        }
 
-        CustomUserDetails customUserDetails = new CustomUserDetails(member);
-        log.info("JWTFilter class - customUserDetails.getUsername() {}", customUserDetails.getUsername());
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        // Token 사용자 정보 추출 및 인증 처리
+        try {
+            String memberId = jwtProvider.getMemberId(accessToken);
+            Member member = new Member(Long.parseLong(memberId));
+            log.info("JWTFilter class - member.getId() {}", member.getId());
+
+            CustomUserDetails customUserDetails = new CustomUserDetails(member);
+            log.info("JWTFilter class - customUserDetails.getUsername() {}", customUserDetails.getUsername());
+            Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        } catch (NumberFormatException e) {
+            log.error("Invalid memberId format in access_token: " + e.getMessage(), e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 error
+            return;
+        } catch (Exception e) {
+            log.error("Error setting authentication in security context: " + e.getMessage(), e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 error
+            return;
+        }
 
         filterChain.doFilter(request, response);
-
     }
+
 }
