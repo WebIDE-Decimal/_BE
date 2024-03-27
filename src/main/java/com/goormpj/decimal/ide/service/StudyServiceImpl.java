@@ -1,8 +1,11 @@
 package com.goormpj.decimal.ide.service;
 
 import com.goormpj.decimal.board.dto.RecruitInfoDTO;
+import com.goormpj.decimal.board.dto.RecruitPostDTO;
 import com.goormpj.decimal.board.dto.RecruitPostRequestDTO;
+import com.goormpj.decimal.board.entity.RecruitInfo;
 import com.goormpj.decimal.board.entity.RecruitPost;
+import com.goormpj.decimal.board.repository.RecruitInfoRepository;
 import com.goormpj.decimal.ide.domain.Study;
 import com.goormpj.decimal.ide.domain.Folder;
 import com.goormpj.decimal.ide.repository.FolderRepository;
@@ -24,19 +27,21 @@ public class StudyServiceImpl implements StudyService {
     private final StudyRepository studyRepository;
     private final FolderService folderService;
     private final MemberRepository memberRepository;
+    private final RecruitInfoRepository recruitInfoRepository;
 
     @Override
-    public Study createStudy(RecruitPostRequestDTO requestDTO, RecruitInfoDTO recruitInfoDTO) {
+    public Study createStudy(RecruitPostDTO requestDTO) {
         Study newStudy = null;
 
         // 상태가 false인 경우에만 스터디 생성
-        if (recruitInfoDTO.getState().equals("false")) {
+        if (!requestDTO.getState()) {
             newStudy = new Study();
             newStudy.setName(requestDTO.getTitle());
             newStudy.setMemberCount(requestDTO.getRecruited());
 
             // 리더 정보 설정
-            Member leader = memberRepository.findById(recruitInfoDTO.getId()).orElse(null);
+            Long writerId = requestDTO.getWriterId(); // RecruitPostDTO에서 writerId 가져오기
+            Member leader = memberRepository.findById(writerId).orElse(null); // writerId를 사용하여 리더 정보 가져오기
             if (leader != null) {
                 newStudy.setMember(leader);
                 newStudy.setIsLeader(true);

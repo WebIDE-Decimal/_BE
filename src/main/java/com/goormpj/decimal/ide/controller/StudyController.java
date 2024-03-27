@@ -24,8 +24,8 @@ public class StudyController {
 
     // 스터디 생성 시 최상위 폴더 생성
     @PostMapping("/study")
-    public ResponseEntity<String> createStudyFromRecruitPost(@RequestBody RecruitPostRequestDTO requestDTO, RecruitInfoDTO recruitInfoDTO) {
-        Study newStudy = studyService.createStudy(requestDTO, recruitInfoDTO);
+    public ResponseEntity<String> createStudyFromRecruitPost(@RequestBody RecruitPostDTO requestDTO) {
+        Study newStudy = studyService.createStudy(requestDTO);
 
         if (newStudy != null) {
             studyService.createRootFolderForStudy(newStudy);
