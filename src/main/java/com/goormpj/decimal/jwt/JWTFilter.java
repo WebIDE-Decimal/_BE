@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -25,6 +26,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // 요청에서 모든 헤더를 로깅
+        Collections.list(request.getHeaderNames()).forEach(headerName -> {
+            Collections.list(request.getHeaders(headerName)).forEach(headerValue -> {
+                log.info("Header '{}': {}", headerName, headerValue);
+            });
+        });
+
         // 헤더에서 access_token 꺼내기
         String accessToken = request.getHeader("access_token");
 
