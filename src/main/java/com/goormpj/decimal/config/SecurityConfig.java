@@ -5,6 +5,8 @@ import com.goormpj.decimal.jwt.JWTFilter;
 import com.goormpj.decimal.jwt.JWTProvider;
 import com.goormpj.decimal.jwt.LoginFilter;
 import com.goormpj.decimal.user.repository.RefreshTokenRepository;
+import com.goormpj.decimal.user.oauth2.handler.CustomSuccessHandler;
+import com.goormpj.decimal.user.oauth2.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
