@@ -76,7 +76,7 @@ public class SecurityConfig {
                             return config;
                         }))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/users/signup", "/", "/api/login","/api/logout", "/api/recruit").permitAll()
+                        .requestMatchers("/api/users/signup", "/", "/api/login","/api/logout").permitAll()
                         .requestMatchers("/api/reissue").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
