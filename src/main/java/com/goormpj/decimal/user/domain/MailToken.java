@@ -31,7 +31,7 @@ public class MailToken {
     }
 
     public static MailToken createMailToken(String userEmail) {
-        LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(5L);
+        LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(8L);
         String token = generateToken(); // 토큰 생성
         return MailToken.builder()
                 .token(token)
