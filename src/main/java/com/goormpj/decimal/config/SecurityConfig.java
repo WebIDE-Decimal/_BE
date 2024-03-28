@@ -37,6 +37,10 @@ public class SecurityConfig {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private final CustomOAuth2UserService customOAuth2UserService; //추가
+
+    private final CustomSuccessHandler customSuccessHandler; //추가
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -75,6 +79,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/reissue").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(jwtProvider), LoginFilter.class)
+                .oauth2Login((oauth2) -> oauth2
+                        .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                                .userService(customOAuth2UserService))
+                        .successHandler(customSuccessHandler))
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtProvider, refreshTokenRepository), LogoutFilter.class)
                 .sessionManagement((session) -> session
