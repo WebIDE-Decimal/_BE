@@ -76,7 +76,6 @@ public class SecurityConfig {
                             return config;
                         }))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/**").permitAll() // 모든 경로 허용
                         .requestMatchers("/api/users/signup", "/", "/api/login","/api/logout").permitAll()
                         .requestMatchers("/api/reissue").permitAll()
                         .anyRequest().authenticated())
